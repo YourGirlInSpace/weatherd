@@ -1,11 +1,12 @@
 ﻿using System;
 using Serilog;
 
-namespace weatherd.datasources.Pakbus
+namespace weatherd.datasources.pakbus
 {
     public class PakbusHeader
     {
         public PakbusHeaderType Type { get; }
+
         public uint DestinationNodeID { get; }
 
         public uint SourceNodeID { get; }
@@ -21,9 +22,11 @@ namespace weatherd.datasources.Pakbus
         public PakbusLinkState LinkState { get; } = PakbusLinkState.Ready;
 
         public PakbusPriority Priority { get; } = PakbusPriority.Normal;
+
         public byte HopCount { get; }
-        
-        public PakbusHeader(PakbusHeaderType type,
+
+        public PakbusHeader(
+            PakbusHeaderType type,
             uint dstNodeId,
             uint srcNodeId,
             PakbusProtocol protocol)
@@ -33,8 +36,9 @@ namespace weatherd.datasources.Pakbus
             SourceNodeID = SourcePhysicalAddress = srcNodeId;
             Protocol = protocol;
         }
-        
-        public PakbusHeader(PakbusHeaderType type,
+
+        public PakbusHeader(
+            PakbusHeaderType type,
             uint dstNodeId,
             uint srcNodeId,
             PakbusProtocol protocol,
@@ -52,8 +56,9 @@ namespace weatherd.datasources.Pakbus
             Priority = priority;
             HopCount = hopCnt;
         }
-        
-        public PakbusHeader(PakbusHeaderType type,
+
+        public PakbusHeader(
+            PakbusHeaderType type,
             uint dstNodeId,
             uint srcNodeId,
             uint dstPhysAddr,
@@ -67,8 +72,9 @@ namespace weatherd.datasources.Pakbus
             SourcePhysicalAddress = srcPhysAddr;
             Protocol = protocol;
         }
-        
-        public PakbusHeader(PakbusHeaderType type,
+
+        public PakbusHeader(
+            PakbusHeaderType type,
             uint dstNodeId,
             uint srcNodeId,
             uint dstPhysAddr,
@@ -114,9 +120,9 @@ namespace weatherd.datasources.Pakbus
                 case PakbusHeaderType.CompressedLinkState:
                 {
                     byte[] buffer = new byte[4];
-                    buffer[0] |= (byte) ((byte)LinkState << 4);
+                    buffer[0] |= (byte)((byte)LinkState << 4);
                     buffer[0] |= (byte)(DestinationPhysicalAddress >> 8);
-                        
+
                     buffer[1] = (byte)(DestinationPhysicalAddress & 0xFF);
                     buffer[2] = (byte)((uint)(ExpectModeCode | (byte)Priority) | (SourcePhysicalAddress >> 8));
                     buffer[3] = (byte)(SourcePhysicalAddress & 0xFF);
@@ -135,24 +141,27 @@ namespace weatherd.datasources.Pakbus
             byte expMoreCode = (byte)((data >> 46) & 0x3);
             byte priority = (byte)((data >> 44) & 0x3);
             uint srcPhyAddr = (uint)((data >> 32) & 0xFFF);
-            PakbusProtocol hiProtoCode = (PakbusProtocol)((data >> 28) & 0xF);
+            var hiProtoCode = (PakbusProtocol)((data >> 28) & 0xF);
             uint dstNodeId = (uint)((data >> 16) & 0xFFF);
             byte hopCnt = (byte)((data >> 12) & 0xF);
             uint srcNodeId = (uint)(data & 0xFFF);
 
-            return new PakbusHeader(PakbusHeaderType.Normal, dstNodeId, srcNodeId, dstPhyAddr, srcPhyAddr, hiProtoCode, expMoreCode, (PakbusLinkState) linkState,
+            return new PakbusHeader(PakbusHeaderType.Normal, dstNodeId, srcNodeId, dstPhyAddr, srcPhyAddr, hiProtoCode,
+                                    expMoreCode, (PakbusLinkState)linkState,
                                     (PakbusPriority)priority, hopCnt);
         }
 
         public static PakbusHeader DecompileCompressedLinkState(byte[] data)
         {
-            byte linkState = (byte) (data[0] >> 4);
+            byte linkState = (byte)(data[0] >> 4);
             uint destAddr = ((data[0] & 0xFu) << 8) | data[1];
-            byte expMoreCode = (byte) (data[2] >> 6);
-            byte priority = (byte) ((data[2] >> 4) & 0x3);
+            byte expMoreCode = (byte)(data[2] >> 6);
+            byte priority = (byte)((data[2] >> 4) & 0x3);
             uint sourceAddr = ((data[2] & 0xFu) << 8) | data[3];
 
-            return new PakbusHeader(PakbusHeaderType.CompressedLinkState, 0, 0, destAddr, sourceAddr, PakbusProtocol.LinkState, expMoreCode, (PakbusLinkState) linkState, (PakbusPriority)priority, 0);
+            return new PakbusHeader(PakbusHeaderType.CompressedLinkState, 0, 0, destAddr, sourceAddr,
+                                    PakbusProtocol.LinkState, expMoreCode, (PakbusLinkState)linkState,
+                                    (PakbusPriority)priority, 0);
         }
 
         public static PakbusHeader Create(
@@ -160,9 +169,9 @@ namespace weatherd.datasources.Pakbus
             uint to,
             PakbusProtocol protocol,
             PakbusPriority priority = PakbusPriority.High) =>
-            new PakbusHeader(PakbusHeaderType.Normal, to, from, to, from,
-                             protocol,
-                             1, PakbusLinkState.Ready, priority, 0);
+            new(PakbusHeaderType.Normal, to, from, to, from,
+                protocol,
+                1, PakbusLinkState.Ready, priority, 0);
 
         public static PakbusHeader Decompile(byte[] data)
         {

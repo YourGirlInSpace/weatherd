@@ -1,8 +1,8 @@
 ﻿#if DEBUG
 using System;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using System.Timers;
+using Microsoft.Extensions.Configuration;
 using Serilog;
 using UnitsNet;
 using UnitsNet.Units;
@@ -11,33 +11,26 @@ namespace weatherd.datasources.testdatasource
 {
     public interface ITestDataSource : IAsyncWeatherDataSource
     {
-
     }
 
     public class TestDataSource : ITestDataSource
     {
         private const int DefaultPollingInterval = 1;
         private const int DefaultSampleInterval = 1;
-        
-        private static readonly DiurnalParameter DefaultTemperatureDiurnalParameters = new (15, 30, 4, 24, 1);
+
+        private static readonly DiurnalParameter DefaultTemperatureDiurnalParameters = new(15, 30, 4, 24, 1);
         private static readonly DiurnalParameter DefaultDewpointDiurnalParameters = new(10, 25, 6, 24, 1);
         private static readonly DiurnalParameter DefaultPressureDiurnalParameters = new(1013.25f, 1014.65f, 4, 12, 1);
 
-        private readonly IConfiguration Configuration;
-        private int sampleInterval;
-        private Timer timer;
+        public bool Enabled { get; private set; }
 
-        private DiurnalParameter DiurnalTemperature;
-        private DiurnalParameter DiurnalDewpoint;
-        private DiurnalParameter DiurnalPressure;
-
-        private MeyersDaleSolarRadiationModel _meyersDaleSolarRadModel;
-        private SyntheticWind _syntheticWind;
+        public TestDataSource(IConfiguration config)
+        {
+            Configuration = config ?? throw new ArgumentNullException(nameof(config));
+        }
 
         /// <inheritdoc />
         public string Name => "Test Data Source";
-
-        public bool Enabled { get; private set; }
 
         public int PollingInterval { get; private set; }
 
@@ -53,15 +46,10 @@ namespace weatherd.datasources.testdatasource
         /// <inheritdoc />
         public event EventHandler<WeatherDataEventArgs> SampleAvailable;
 
-        public TestDataSource(IConfiguration config)
-        {
-            Configuration = config ?? throw new ArgumentNullException(nameof(config));
-        }
-
         /// <inheritdoc />
         public async Task<bool> Initialize()
         {
-            var section = Configuration.GetSection(nameof(TestDataSource));
+            IConfigurationSection section = Configuration.GetSection(nameof(TestDataSource));
             if (section == null)
                 return true;
 
@@ -77,11 +65,12 @@ namespace weatherd.datasources.testdatasource
             if (!int.TryParse(section["SampleInterval"], out sampleInterval))
                 sampleInterval = DefaultSampleInterval;
 
-            var syntheticsSection = section.GetSection("Synthetics");
+            IConfigurationSection syntheticsSection = section.GetSection("Synthetics");
             if (syntheticsSection != null)
             {
                 DiurnalTemperature =
-                    new DiurnalParameter(syntheticsSection.GetSection("Temperature"), DefaultTemperatureDiurnalParameters);
+                    new DiurnalParameter(syntheticsSection.GetSection("Temperature"),
+                                         DefaultTemperatureDiurnalParameters);
                 DiurnalDewpoint =
                     new DiurnalParameter(syntheticsSection.GetSection("Dewpoint"), DefaultDewpointDiurnalParameters);
                 DiurnalPressure =
@@ -120,7 +109,7 @@ namespace weatherd.datasources.testdatasource
                 DiurnalPressure.Period,
                 DiurnalPressure.Trough,
                 DiurnalPressure.Deviation);
-            
+
             Log.Information(
                 "{dataSource} initialized with polling interval of {pollingInterval} seconds and sample interval of {sampleInterval} seconds",
                 Name,
@@ -136,7 +125,8 @@ namespace weatherd.datasources.testdatasource
         {
             if (!Enabled)
             {
-                Log.Information("{dataSource} could not start because the data source is disabled in configuration.", Name);
+                Log.Information("{dataSource} could not start because the data source is disabled in configuration.",
+                                Name);
                 return false;
             }
 
@@ -149,7 +139,7 @@ namespace weatherd.datasources.testdatasource
             timer = new Timer(sampleInterval * 1000);
             timer.Elapsed += (_, _) => Sample();
             timer.Start();
-            
+
             Log.Verbose("{dataSource} timer enabled: {timerEnabled}", Name, timer.Enabled);
             if (timer.Enabled)
                 Log.Information("{dataSource} started!", Name);
@@ -160,10 +150,18 @@ namespace weatherd.datasources.testdatasource
             return Running;
         }
 
+        /// <inheritdoc />
+        public async Task<bool> Stop()
+        {
+            timer.Enabled = false;
+            Running = timer.Enabled;
+            return !timer.Enabled;
+        }
+
         private void Sample()
         {
             DateTime sampleTime = DateTime.Now;
-            
+
             float simTemp = DiurnalTemperature.Sample(sampleTime);
             float simDewpoint = DiurnalDewpoint.Sample(sampleTime);
             float simPressure = DiurnalPressure.Sample(sampleTime);
@@ -175,7 +173,7 @@ namespace weatherd.datasources.testdatasource
              */
             if (simDewpoint > simTemp)
                 simDewpoint = simTemp;
-            
+
             float windSpeed = _syntheticWind.WindSpeed();
             float windDir = _syntheticWind.WindDirection();
 
@@ -197,13 +195,16 @@ namespace weatherd.datasources.testdatasource
             SampleAvailable?.Invoke(this, new WeatherDataEventArgs(Conditions));
         }
 
-        /// <inheritdoc />
-        public async Task<bool> Stop()
-        {
-            timer.Enabled = false;
-            Running = timer.Enabled;
-            return !timer.Enabled;
-        }
+        private readonly IConfiguration Configuration;
+
+        private MeyersDaleSolarRadiationModel _meyersDaleSolarRadModel;
+        private SyntheticWind _syntheticWind;
+        private DiurnalParameter DiurnalDewpoint;
+        private DiurnalParameter DiurnalPressure;
+
+        private DiurnalParameter DiurnalTemperature;
+        private int sampleInterval;
+        private Timer timer;
     }
 }
 #endif

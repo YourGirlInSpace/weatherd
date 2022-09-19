@@ -1,10 +1,7 @@
-﻿using System;
-using System.IO;
-using System.Text;
-using Serilog;
+﻿using Serilog;
 using weatherd.io;
 
-namespace weatherd.datasources.Pakbus.Messages.BMP5
+namespace weatherd.datasources.pakbus.Messages.BMP5
 {
     public class PakbusDataCollectCommandMessage : PakbusBMP5Message
     {
@@ -16,9 +13,18 @@ namespace weatherd.datasources.Pakbus.Messages.BMP5
         public PakbusCollectionMode CollectMode { get; private set; }
 
         internal PakbusDataCollectCommandMessage()
-            : base(PakbusMessageType.BMP5_CollectDataCommand, 0) { }
+            : base(PakbusMessageType.BMP5_CollectDataCommand, 0)
+        {
+        }
 
-        public PakbusDataCollectCommandMessage(byte transactionNumber, ushort tableNum, ushort tableSig, ushort securityCode, PakbusCollectionMode collectMode, uint p1, uint p2)
+        public PakbusDataCollectCommandMessage(
+            byte transactionNumber,
+            ushort tableNum,
+            ushort tableSig,
+            ushort securityCode,
+            PakbusCollectionMode collectMode,
+            uint p1,
+            uint p2)
             : base(PakbusMessageType.BMP5_CollectDataCommand, transactionNumber)
         {
             TableNumber = tableNum;
@@ -32,12 +38,12 @@ namespace weatherd.datasources.Pakbus.Messages.BMP5
         /// <inheritdoc />
         public override byte[] Encode()
         {
-            BinaryStream bs = new BinaryStream(Endianness.Big);
-            bs.Write((byte) ((int)MessageType & 0xFF));
+            var bs = new BinaryStream(Endianness.Big);
+            bs.Write((byte)((int)MessageType & 0xFF));
             bs.Write(TransactionNumber);
 
             bs.Write(SecurityCode);
-            bs.Write((byte) CollectMode);
+            bs.Write((byte)CollectMode);
             bs.Write(TableNumber);
             bs.Write(TableSignature);
 
@@ -55,7 +61,7 @@ namespace weatherd.datasources.Pakbus.Messages.BMP5
                     break;
             }
 
-            bs.Write((byte) 0);
+            bs.Write((byte)0);
 
             return bs.ToArray();
         }
@@ -63,17 +69,17 @@ namespace weatherd.datasources.Pakbus.Messages.BMP5
         /// <inheritdoc />
         protected internal override PakbusMessage Decode(byte[] data)
         {
-            BinaryStream bs = new BinaryStream(data, Endianness.Big);
+            var bs = new BinaryStream(data, Endianness.Big);
             bs.Skip(2);
 
             ushort securityCode = bs.ReadUInt16();
 
-            PakbusCollectionMode collectMode = (PakbusCollectionMode) bs.ReadByte();
+            var collectMode = (PakbusCollectionMode)bs.ReadByte();
             int msgLen = data.Length - 3;
 
             int tblNum = bs.ReadUInt16();
             int tblSig = bs.ReadUInt16();
-            
+
             switch (collectMode)
             {
                 case PakbusCollectionMode.GetDataFromRecord:
@@ -111,11 +117,13 @@ namespace weatherd.datasources.Pakbus.Messages.BMP5
                     break;
                 case PakbusCollectionMode.GetDataFromRecord:
                     Log.Verbose(
-                        "[Pakbus] Collect command:  Collect from {p1} to the latest record on table {tblNum}", P1, tblNum);
+                        "[Pakbus] Collect command:  Collect from {p1} to the latest record on table {tblNum}", P1,
+                        tblNum);
                     break;
                 case PakbusCollectionMode.GetRecordsBetweenTimes:
                     Log.Verbose(
-                        "[Pakbus] Collect command:  Collect the time swath described by {p1} and {p2} on table {tblNum}", P1, P2, tblNum);
+                        "[Pakbus] Collect command:  Collect the time swath described by {p1} and {p2} on table {tblNum}",
+                        P1, P2, tblNum);
                     break;
                 default:
                     Log.Verbose(

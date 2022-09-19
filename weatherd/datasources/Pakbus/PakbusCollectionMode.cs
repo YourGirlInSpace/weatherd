@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace weatherd.datasources.Pakbus
+namespace weatherd.datasources.pakbus
 {
     [Flags]
     public enum PakbusCollectionMode

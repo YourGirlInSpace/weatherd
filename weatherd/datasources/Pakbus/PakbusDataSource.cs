@@ -6,13 +6,14 @@ using Microsoft.Extensions.Configuration;
 using Serilog;
 using UnitsNet;
 using UnitsNet.Units;
-using weatherd.datasources.Pakbus.Messages.BMP5;
-using weatherd.datasources.Pakbus.Messages.PakCtrl;
+using weatherd.datasources.pakbus.Messages.BMP5;
+using weatherd.datasources.pakbus.Messages.PakCtrl;
 
-namespace weatherd.datasources.Pakbus
+namespace weatherd.datasources.pakbus
 {
     public interface IPakbusDataSource : IAsyncWeatherDataSource
-    { }
+    {
+    }
 
     public class PakbusDataSource : IPakbusDataSource
     {
@@ -39,10 +40,12 @@ namespace weatherd.datasources.Pakbus
             NodeID = nodeId;
             TargetNode = targetNode;
             SecurityCode = securityCode;
+
+            _cts = new CancellationTokenSource();
         }
 
         /// <inheritdoc />
-        public async Task<bool> Initialize()
+        public Task<bool> Initialize()
         {
             IConfigurationSection section = Configuration.GetSection(nameof(PakbusDataSource));
             if (section == null)
@@ -78,14 +81,14 @@ namespace weatherd.datasources.Pakbus
             } catch (Exception ex)
             {
                 Log.Fatal(ex, "Failed to open {comPort}", portName);
-                return false;
+                return Task.FromResult(false);
             }
 
             Initialized = _port.IsOpen;
-            return Initialized;
+            return Task.FromResult(Initialized);
         }
 
-        public async Task<bool> Start()
+        public Task<bool> Start()
         {
             Task.Factory.StartNew(async () =>
             {
@@ -96,7 +99,7 @@ namespace weatherd.datasources.Pakbus
                     while (true)
                     {
                         if (reconnectAttempts != 0)
-                            await Task.Delay(5000);
+                            await Task.Delay(5000, _cts.Token);
 
                         if (reconnectAttempts == 5)
                         {
@@ -108,7 +111,7 @@ namespace weatherd.datasources.Pakbus
                         for (int i = 0; i < 5; i++)
                         {
                             Send(new byte[] { 0xBD });
-                            await Task.Delay(10);
+                            await Task.Delay(10, _cts.Token);
                         }
 
                         Log.Verbose("Beginning 'ring' transaction...");
@@ -132,7 +135,7 @@ namespace weatherd.datasources.Pakbus
                             continue;
                         }
 
-                        await Task.Delay(1000);
+                        await Task.Delay(1000, _cts.Token);
 
                         // Validate the clock
                         PakbusXTDClockResponse r = await GetTimeTransaction(NodeID, TargetNode);
@@ -144,7 +147,8 @@ namespace weatherd.datasources.Pakbus
                             "Datalogger clock is {time}, which differs from server time by {deviation} seconds",
                             r.Time.ToTime(), deviation.TotalSeconds);
                         if (deviation > TimeSpan.FromSeconds(5))
-                            await SetClock(NodeID, TargetNode, DateTime.UtcNow);
+                            if (!await SetClock(NodeID, TargetNode, DateTime.UtcNow))
+                                Log.Warning("Could not set the datalogger's clock.");
 
                         // Download table definitions
                         XTDTableDefinition tableDef = await DownloadXTDTableDefinitionsTransaction(NodeID, TargetNode);
@@ -167,7 +171,8 @@ namespace weatherd.datasources.Pakbus
                             }
 
                             if (DateTime.UtcNow - _lastClockSetTime > TimeSpan.FromMinutes(5))
-                                await SetClock(NodeID, TargetNode, DateTime.UtcNow);
+                                if (!await SetClock(NodeID, TargetNode, DateTime.UtcNow))
+                                    Log.Warning("Could not set the datalogger's clock.");
 
                             PakbusDataCollectResponseMessage data =
                                 await SendCollectDataTransaction(NodeID, TargetNode, tableDef["Inlocs"]);
@@ -179,7 +184,7 @@ namespace weatherd.datasources.Pakbus
                                 {
                                     long recTime = (long)data["RECTIME"];
                                     DateTime dt = DateTime.UnixEpoch.AddSeconds(recTime);
-                                    
+
                                     Conditions = new WeatherState
                                     {
                                         Time = dt,
@@ -208,7 +213,7 @@ namespace weatherd.datasources.Pakbus
                                 _lastPacketTime = DateTime.UtcNow;
                             }
 
-                            await Task.Delay(1000);
+                            await Task.Delay(1000, _cts.Token);
                         }
 
                         // Error state:  Could not retrieve data from datalogger.  Try again.
@@ -222,11 +227,33 @@ namespace weatherd.datasources.Pakbus
                 Running = false;
             });
 
-            return true;
+            return Task.FromResult(true);
         }
 
         /// <inheritdoc />
-        public async Task<bool> Stop() => true;
+        public Task<bool> Stop()
+        {
+            _cts.Cancel();
+            return Task.FromResult(true);
+        }
+
+        /// <inheritdoc />
+        public WeatherState Conditions { get; set; }
+
+        /// <inheritdoc />
+        public event EventHandler<WeatherDataEventArgs> SampleAvailable;
+
+        /// <inheritdoc />
+        public string Name => "Pakbus Data Source";
+
+        /// <inheritdoc />
+        public int PollingInterval => 1;
+
+        /// <inheritdoc />
+        public bool Initialized { get; private set; }
+
+        /// <inheritdoc />
+        public bool Running { get; private set; }
 
         internal void Send(PakbusPacket packet)
         {
@@ -523,6 +550,8 @@ namespace weatherd.datasources.Pakbus
             }
         }
 
+        private readonly CancellationTokenSource _cts;
+
         private DateTime _lastClockSetTime = DateTime.UtcNow;
 
         private DateTime _lastPacketTime = DateTime.UtcNow;
@@ -533,23 +562,5 @@ namespace weatherd.datasources.Pakbus
         public uint NodeID;
         public ushort SecurityCode;
         public uint TargetNode;
-
-        /// <inheritdoc />
-        public WeatherState Conditions { get; set; }
-
-        /// <inheritdoc />
-        public event EventHandler<WeatherDataEventArgs> SampleAvailable;
-
-        /// <inheritdoc />
-        public string Name => "Pakbus Data Source";
-
-        /// <inheritdoc />
-        public int PollingInterval => 1;
-
-        /// <inheritdoc />
-        public bool Initialized { get; private set; }
-
-        /// <inheritdoc />
-        public bool Running { get; private set; }
     }
 }

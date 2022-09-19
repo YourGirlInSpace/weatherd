@@ -1,7 +1,6 @@
-﻿using System.Runtime.CompilerServices;
-using FluentAssertions;
-using weatherd.datasources.Pakbus;
-using weatherd.datasources.Pakbus.Messages.PakCtrl;
+﻿using FluentAssertions;
+using weatherd.datasources.pakbus;
+using weatherd.datasources.pakbus.Messages.PakCtrl;
 using Xunit;
 
 namespace weatherd.tests.datasources.Pakbus.Messages.PakCtrl

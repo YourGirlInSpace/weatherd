@@ -1,12 +1,13 @@
 ﻿using System;
 using Serilog;
 
-namespace weatherd.datasources.Pakbus.Messages.PakCtrl
+namespace weatherd.datasources.pakbus.Messages.PakCtrl
 {
     public abstract class PakbusPakCtrlMessage : PakbusMessage
     {
         /// <inheritdoc />
-        protected PakbusPakCtrlMessage(PakbusMessageType msgType, byte transactionNumber) : base(msgType, transactionNumber)
+        protected PakbusPakCtrlMessage(PakbusMessageType msgType, byte transactionNumber) : base(
+            msgType, transactionNumber)
         {
         }
 
@@ -14,7 +15,7 @@ namespace weatherd.datasources.Pakbus.Messages.PakCtrl
         {
             int msgTypeRaw = bytes[0];
             msgTypeRaw |= (byte)protocol << 8;
-            PakbusMessageType msgType = (PakbusMessageType)msgTypeRaw;
+            var msgType = (PakbusMessageType)msgTypeRaw;
 
             byte transNum = bytes[1];
 

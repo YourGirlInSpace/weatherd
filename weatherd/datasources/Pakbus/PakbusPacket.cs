@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using Serilog;
-using weatherd.datasources.Pakbus.Messages.PakCtrl;
 
-namespace weatherd.datasources.Pakbus
+namespace weatherd.datasources.pakbus
 {
     public class PakbusPacket
     {
@@ -17,8 +14,13 @@ namespace weatherd.datasources.Pakbus
 
         protected const byte PacketBoundary = 0xBD;
 
+        // A bit arbitrary, I chose to start transaction numbers at 127.  Sue me.
         private static uint _transactionNumber = 127;
         private static readonly object _locker = new();
+        
+        public PakbusPacket(PakbusHeader header)
+            : this(header, null)
+        { }
         
         public PakbusPacket(PakbusHeader header, PakbusMessage message)
         {
@@ -145,18 +147,17 @@ namespace weatherd.datasources.Pakbus
             PakbusHeader header = PakbusHeader.Decompile(unquoted[..8]);
             PakbusMessage message = PakbusMessage.Decompile(header.Protocol, unquoted[8..^2]);
 
-            if (message is not null)
-            {
-                bool isTransmit = header.SourcePhysicalAddress == 4092;
+            if (message is null)
+                return new PakbusPacket(header);
 
-                Log.Debug(
-                    "[Pakbus {txrx}] {msgType} [{msgTypeByte:X}] (tx={transNum}) from {sourceNode} to {destNode}",
-                    isTransmit ? "TX" : "RX",
-                    message.MessageType, (byte)message.MessageType & 0xFF, message.TransactionNumber,
-                    header.SourceNodeID, header.DestinationNodeID);
-            }
+            bool isTransmit = header.SourcePhysicalAddress == 4092;
 
-
+            Log.Debug(
+                "[Pakbus {txrx}] {msgType} [{msgTypeByte:X}] (tx={transNum}) from {sourceNode} to {destNode}",
+                isTransmit ? "TX" : "RX",
+                message.MessageType, (byte)message.MessageType & 0xFF, message.TransactionNumber,
+                header.SourceNodeID, header.DestinationNodeID);
+            
             return new PakbusPacket(header, message);
         }
     }

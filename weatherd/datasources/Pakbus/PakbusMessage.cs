@@ -1,8 +1,8 @@
 ﻿using System;
-using weatherd.datasources.Pakbus.Messages.BMP5;
-using weatherd.datasources.Pakbus.Messages.PakCtrl;
+using weatherd.datasources.pakbus.Messages.BMP5;
+using weatherd.datasources.pakbus.Messages.PakCtrl;
 
-namespace weatherd.datasources.Pakbus
+namespace weatherd.datasources.pakbus
 {
     public abstract class PakbusMessage
     {
@@ -10,14 +10,14 @@ namespace weatherd.datasources.Pakbus
         public byte TransactionNumber { get; protected set; }
         public byte Size { get; protected set; }
 
-        public abstract byte[] Encode();
-        protected internal abstract PakbusMessage Decode(byte[] data);
-
         protected PakbusMessage(PakbusMessageType msgType, byte transactionNumber)
         {
             MessageType = msgType;
             TransactionNumber = transactionNumber;
         }
+
+        public abstract byte[] Encode();
+        protected internal abstract PakbusMessage Decode(byte[] data);
 
         protected PakbusMessage WithData(PakbusMessageType msgType, byte transNum)
         {
@@ -28,15 +28,13 @@ namespace weatherd.datasources.Pakbus
 
         public static PakbusMessage Decompile(PakbusProtocol protocol, byte[] bytes)
         {
-            switch (protocol)
+            return protocol switch
             {
-                case PakbusProtocol.PakCtrl:
-                    return PakbusPakCtrlMessage.Decompile(protocol, bytes);
-                case PakbusProtocol.BMP:
-                    return PakbusBMP5Message.Decompile(protocol, bytes);
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(protocol), protocol, "Protocol out of range");
-            }
+                PakbusProtocol.PakCtrl => PakbusPakCtrlMessage.Decompile(protocol, bytes),
+                PakbusProtocol.BMP => PakbusBMP5Message.Decompile(protocol, bytes),
+                PakbusProtocol.LinkState => throw new InvalidOperationException(),
+                _ => throw new ArgumentOutOfRangeException(nameof(protocol), protocol, "Protocol out of range")
+            };
         }
     }
 }

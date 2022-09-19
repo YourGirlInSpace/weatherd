@@ -6,6 +6,7 @@ namespace weatherd.datasources
     {
         WeatherState Conditions { get; }
     }
+
     public interface IAsyncWeatherDataSource : IAsyncDataSource
     {
         WeatherState Conditions { get; }

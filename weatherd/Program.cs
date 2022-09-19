@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AWS.Logger.SeriLog;
@@ -8,10 +7,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using weatherd.datasources;
-using weatherd.datasources.Pakbus;
-using weatherd.datasources.Pakbus.Messages.BMP5;
+using weatherd.datasources.pakbus;
 using weatherd.services;
-
 #if DEBUG
 using weatherd.datasources.testdatasource;
 #endif
@@ -20,7 +17,6 @@ namespace weatherd
 {
     internal class Program
     {
-
         internal static IConfiguration Configuration { get; private set; }
 
         private static async Task Main(string[] args)
@@ -53,8 +49,8 @@ namespace weatherd
 #endif
                   });
 
-            var serviceProvider = services.BuildServiceProvider();
-            
+            ServiceProvider serviceProvider = services.BuildServiceProvider();
+
             var timestreamService = serviceProvider.GetRequiredService<IWeatherTimestreamService>();
 
             if (!Enum.TryParse(Configuration.GetValue("DataSource", "Test"), out DataSourceType dataSourceType))
@@ -70,11 +66,12 @@ namespace weatherd
                 {
                     DataSourceType.Pakbus => serviceProvider.GetRequiredService<IPakbusDataSource>(),
 #if DEBUG
-                DataSourceType.Test => serviceProvider.GetRequiredService<ITestDataSource>()
+                    DataSourceType.Test => serviceProvider.GetRequiredService<ITestDataSource>(),
 #else
                     DataSourceType.Test => throw new InvalidOperationException(
                         "Test data source is unavailable in release versions.")
 #endif
+                    _ => throw new ArgumentOutOfRangeException()
                 };
             } catch (Exception ex)
             {
@@ -83,13 +80,13 @@ namespace weatherd
             }
 
             Log.Information("Loading the {dataSourceType} data source!", dataSourceType);
-            
+
             if (!await timestreamService.Initialize(asyncWxDataSource))
             {
                 Log.Fatal("Failed to initialize Timestream service.");
                 return;
             }
-            
+
             if (!await timestreamService.Start())
             {
                 Log.Fatal("Failed to start Timestream service.");
@@ -97,9 +94,7 @@ namespace weatherd
             }
 
             while (true)
-            {
                 Thread.Sleep(1000);
-            }
         }
 
         private static void InitializeLogger(bool verboseEnabled, bool cloudwatchEnabled)
@@ -130,7 +125,6 @@ namespace weatherd
 
             Log.Logger = loggerConfig.CreateLogger();
             Log.Verbose("Logging system initialized.");
-
         }
     }
 }

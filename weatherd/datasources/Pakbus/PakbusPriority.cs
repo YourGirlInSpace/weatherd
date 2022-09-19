@@ -1,10 +1,10 @@
-﻿namespace weatherd.datasources.Pakbus
+﻿namespace weatherd.datasources.pakbus
 {
     public enum PakbusPriority
     {
-        Low = 0,
-        Normal = 1,
-        High = 2,
+        Low       = 0,
+        Normal    = 1,
+        High      = 2,
         ExtraHigh = 3
     }
 }

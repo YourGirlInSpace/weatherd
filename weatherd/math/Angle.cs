@@ -1,9 +1,9 @@
 ﻿using System;
 
-namespace weatherd.models
+namespace weatherd.math
 {
     /// <summary>
-    /// Represents an Angle in degrees, radians or gradians.
+    ///     Represents an Angle in degrees, radians or gradians.
     /// </summary>
     public readonly struct Angle : IComparable<Angle>, IEquatable<Angle>
     {
@@ -18,7 +18,6 @@ namespace weatherd.models
         public static readonly Angle Neg360 = FromDegrees(-360);
         public static readonly Angle Minute = FromDegrees(1.0 / 60.0);
         public static readonly Angle Second = FromDegrees(1.0 / 3600.0);
-
 
         private const double DEGREES_TO_RADIANS = Math.PI / 180d;
         private const double RADIANS_TO_DEGREES = 180d / Math.PI;
@@ -65,10 +64,10 @@ namespace weatherd.models
         #region Calculations
 
         /// <summary>
-        /// Adds an angle to this angle.
+        ///     Adds an angle to this angle.
         /// </summary>
         /// <param name="angle">The angle to add to this angle.</param>
-        /// <returns>The result of adding this angle and <paramref name="angle"/></returns>
+        /// <returns>The result of adding this angle and <paramref name="angle" /></returns>
         public Angle Add(Angle angle)
         {
             if (angle == null)
@@ -78,10 +77,10 @@ namespace weatherd.models
         }
 
         /// <summary>
-        /// Subtracts an angle from this angle.
+        ///     Subtracts an angle from this angle.
         /// </summary>
         /// <param name="angle">The angle to subtract from this angle.</param>
-        /// <returns>The result of subtracting <paramref name="angle"/> from this angle.</returns>
+        /// <returns>The result of subtracting <paramref name="angle" /> from this angle.</returns>
         public Angle Subtract(Angle angle)
         {
             if (angle == null)
@@ -91,10 +90,10 @@ namespace weatherd.models
         }
 
         /// <summary>
-        /// Multiplies this angle by another angle.
+        ///     Multiplies this angle by another angle.
         /// </summary>
         /// <param name="angle">The angle to multiply this angle with.</param>
-        /// <returns>The result of this angle multiplied by <paramref name="angle"/></returns>
+        /// <returns>The result of this angle multiplied by <paramref name="angle" /></returns>
         public Angle Multiply(Angle angle)
         {
             if (angle == null)
@@ -104,19 +103,18 @@ namespace weatherd.models
         }
 
         /// <summary>
-        /// Multiplies this angle by a scalar.
+        ///     Multiplies this angle by a scalar.
         /// </summary>
         /// <param name="scalar">The number to multiply the angle with.</param>
-        /// <returns>The result of this angle multiplied by <paramref name="scalar"/></returns>
+        /// <returns>The result of this angle multiplied by <paramref name="scalar" /></returns>
         public Angle Multiply(double scalar)
             => new(Radians * scalar);
 
-
         /// <summary>
-        /// Divides this angle by another angle.
+        ///     Divides this angle by another angle.
         /// </summary>
         /// <param name="angle">The angle to divide this angle by.</param>
-        /// <returns>The result of this angle divided by <paramref name="angle"/></returns>
+        /// <returns>The result of this angle divided by <paramref name="angle" /></returns>
         public Angle Divide(Angle angle)
         {
             if (angle == null)
@@ -128,26 +126,26 @@ namespace weatherd.models
         }
 
         /// <summary>
-        /// Divides this angle by a divisor.
+        ///     Divides this angle by a divisor.
         /// </summary>
         /// <param name="divisor">The divisor to divide the angle by.</param>
-        /// <returns>The result of this angle divided by <paramref name="divisor"/></returns>
+        /// <returns>The result of this angle divided by <paramref name="divisor" /></returns>
         public Angle Divide(int divisor)
             => new(Radians / divisor);
 
         /// <summary>
-        /// Divides this angle by a divisor.
+        ///     Divides this angle by a divisor.
         /// </summary>
         /// <param name="divisor">The divisor to divide the angle by.</param>
-        /// <returns>The result of this angle divided by <paramref name="divisor"/></returns>
+        /// <returns>The result of this angle divided by <paramref name="divisor" /></returns>
         public Angle Divide(double divisor)
             => new(Radians / divisor);
 
         /// <summary>
-        /// Returns the angular distance from this angle to another angle.
+        ///     Returns the angular distance from this angle to another angle.
         /// </summary>
         /// <param name="angle">The angle to measure arcdistance to.</param>
-        /// <returns>The angular distance between this angle and <paramref name="angle"/></returns>
+        /// <returns>The angular distance between this angle and <paramref name="angle" /></returns>
         public Angle AngularDistanceTo(Angle angle)
         {
             if (angle == null)
@@ -165,7 +163,7 @@ namespace weatherd.models
         }
 
         /// <summary>
-        /// Returns the sine of this angle.
+        ///     Returns the sine of this angle.
         /// </summary>
         /// <returns>
         ///     The sine of this angle. If this angle is equal to NaN, NegativeInfinity,
@@ -174,7 +172,7 @@ namespace weatherd.models
         public double Sin() => Math.Sin(Radians);
 
         /// <summary>
-        /// Returns the sine of half this angle.
+        ///     Returns the sine of half this angle.
         /// </summary>
         /// <returns>
         ///     The sine of half this angle. If this angle is equal to NaN, NegativeInfinity,
@@ -183,19 +181,21 @@ namespace weatherd.models
         public double SinHalfAngle() => Math.Sin(Radians * 0.5);
 
         /// <summary>
-        /// Returns the angle whose sine is the specified number.
+        ///     Returns the angle whose sine is the specified number.
         /// </summary>
-        /// <param name="sine">A number representing a sine, where <paramref name="sine"/> must be greater than or equal to -1, but less than or equal to 1.</param>
-
+        /// <param name="sine">
+        ///     A number representing a sine, where <paramref name="sine" /> must be greater than or equal to -1,
+        ///     but less than or equal to 1.
+        /// </param>
         /// <returns>
         ///     An angle, θ, measured in radians, such that -π/2≤θ≤π/2
         ///     -or-
-        ///     NaN if <paramref name="sine"/>&lt;-1 or <paramref name="sine"/>&gt;1 or <paramref name="sine"/> equals NaN.
+        ///     NaN if <paramref name="sine" />&lt;-1 or <paramref name="sine" />&gt;1 or <paramref name="sine" /> equals NaN.
         /// </returns>
         public static Angle Asin(double sine) => new(Math.Asin(sine));
 
         /// <summary>
-        /// Returns the cosine of this angle.
+        ///     Returns the cosine of this angle.
         /// </summary>
         /// <returns>
         ///     The cosine of this angle. If this angle is equal to NaN, NegativeInfinity,
@@ -204,7 +204,7 @@ namespace weatherd.models
         public double Cos() => Math.Cos(Radians);
 
         /// <summary>
-        /// Returns the cosine of half this angle.
+        ///     Returns the cosine of half this angle.
         /// </summary>
         /// <returns>
         ///     The cosine of half this angle. If this angle is equal to NaN, NegativeInfinity,
@@ -215,16 +215,20 @@ namespace weatherd.models
         /// <summary>
         ///     Returns the angle whose cosine is the specified number.
         /// </summary>
-        /// <param name="cosine">A number representing a cosine, where <paramref name="cosine">cosine</paramref> must be greater than or equal to -1, but less than or equal to 1.</param>
+        /// <param name="cosine">
+        ///     A number representing a cosine, where <paramref name="cosine">cosine</paramref> must be greater
+        ///     than or equal to -1, but less than or equal to 1.
+        /// </param>
         /// <returns>
         ///     An angle, θ, measured in radians, such that 0 ≤θ≤π
         ///     -or-
-        ///     NaN if <paramref name="cosine">cosine</paramref>&lt;-1 or <paramref name="cosine">cosine</paramref>&gt;1 or <paramref name="cosine">cosine</paramref> equals NaN.
+        ///     NaN if <paramref name="cosine">cosine</paramref>&lt;-1 or <paramref name="cosine">cosine</paramref>&gt;1 or
+        ///     <paramref name="cosine">cosine</paramref> equals NaN.
         /// </returns>
         public static Angle Acos(double cosine) => new(Math.Acos(cosine));
 
         /// <summary>
-        /// Returns the tangent of this angle.
+        ///     Returns the tangent of this angle.
         /// </summary>
         /// <returns>
         ///     The tangent of this angle. If this angle is equal to NaN, NegativeInfinity,
@@ -233,7 +237,7 @@ namespace weatherd.models
         public double Tan() => Math.Tan(Radians);
 
         /// <summary>
-        /// Returns the angle whose tangent is half the current angle.
+        ///     Returns the angle whose tangent is half the current angle.
         /// </summary>
         /// <returns>
         ///     An angle, θ, measured in radians, such that -π/2 ≤θ≤π/2.
@@ -242,12 +246,13 @@ namespace weatherd.models
         ///     or π/2 rounded to double precision(1.5707963267949) if d equals PositiveInfinity.
         /// </returns>
         /// <remarks>
-        ///     A positive return value represents a counterclockwise angle from the x-axis; a negative return value represents a clockwise angle.
+        ///     A positive return value represents a counterclockwise angle from the x-axis; a negative return value represents a
+        ///     clockwise angle.
         /// </remarks>
         public double TanHalfAngle() => Math.Tan(Radians * 0.5);
 
         /// <summary>
-        /// Returns the hyperbolic arctangent of a number.
+        ///     Returns the hyperbolic arctangent of a number.
         /// </summary>
         /// <param name="rad">A number.</param>
         /// <returns>
@@ -257,7 +262,7 @@ namespace weatherd.models
         public static double Atanh(double rad) => 0.5 * Math.Log((1 + rad) / (1 - rad));
 
         /// <summary>
-        /// Returns the angle whose tangent is the specified number.
+        ///     Returns the angle whose tangent is the specified number.
         /// </summary>
         /// <param name="tangent">A number representing a tangent.</param>
         /// <returns>
@@ -267,33 +272,31 @@ namespace weatherd.models
         ///     or π/2 rounded to double precision(1.5707963267949) if d equals PositiveInfinity.
         /// </returns>
         /// <remarks>
-        ///     A positive return value represents a counterclockwise angle from the x-axis; a negative return value represents a clockwise angle.
+        ///     A positive return value represents a counterclockwise angle from the x-axis; a negative return value represents a
+        ///     clockwise angle.
         /// </remarks>
         public static Angle Atan(double tangent) => new(Math.Atan(tangent));
 
         /// <summary>
-        /// Returns the angle whose tangent is the quotient of two specified numbers.
+        ///     Returns the angle whose tangent is the quotient of two specified numbers.
         /// </summary>
         /// <param name="y">The y coordinate of a point.</param>
         /// <param name="x">The x coordinate of a point.</param>
         /// <returns>
-        ///     An angle, θ, measured in radians, such that -π≤θ≤π, and tan(θ) = y / x, where (x, y) is a point in the Cartesian plane. Observe the following:
-        ///     
+        ///     An angle, θ, measured in radians, such that -π≤θ≤π, and tan(θ) = y / x, where (x, y) is a point in the Cartesian
+        ///     plane. Observe the following:
         ///     - For(x, y) in quadrant 1, 0 &lt; θ&lt;π/2.
         ///     - For (x, y) in quadrant 2, π/2 &lt; θ&lt;π.
         ///     - For(x, y) in quadrant 3, -π&lt;θ&lt;-π/2.
         ///     - For (x, y) in quadrant 4, -π/2&lt;θ&lt;0.
-        ///     
         ///     For points on the boundaries of the quadrants, the return value is the following:
-        ///     
-        ///     
         ///     If y is 0 and x is not negative, θ = 0.
         ///     - If y is 0 and x is negative, θ = π.
         ///     - If y is positive and x is 0, θ = π/2.
         ///     - If y is negative and x is 0, θ = -π/2.
         ///     - If y is 0 and x is 0, θ = 0.
-        ///     
-        ///     If x or y is NaN, or if x and y are either PositiveInfinity or NegativeInfinity, the method returns NaN.</returns>
+        ///     If x or y is NaN, or if x and y are either PositiveInfinity or NegativeInfinity, the method returns NaN.
+        /// </returns>
         /// <remarks>
         ///     The return value is the angle in the Cartesian plane formed by the x-axis, and a vector starting from the origin,
         ///     (0,0), and terminating at the point, (x,y).
@@ -301,7 +304,7 @@ namespace weatherd.models
         public static Angle Atan2(double y, double x) => new(Math.Atan2(y, x));
 
         /// <summary>
-        /// Returns the angle exactly between two angles.
+        ///     Returns the angle exactly between two angles.
         /// </summary>
         /// <param name="a">The first angle.</param>
         /// <param name="b">The second angle.</param>
@@ -309,7 +312,7 @@ namespace weatherd.models
         public static Angle MidAngle(Angle a, Angle b) => Average(a, b);
 
         /// <summary>
-        /// Returns the average of two angles.
+        ///     Returns the average of two angles.
         /// </summary>
         /// <param name="a">The first angle.</param>
         /// <param name="b">The second angle.</param>
@@ -325,16 +328,16 @@ namespace weatherd.models
         }
 
         /// <summary>
-        /// Clamps the angle to a minimum and maximum angle.
+        ///     Clamps the angle to a minimum and maximum angle.
         /// </summary>
         /// <param name="val">The angle to clamp.</param>
         /// <param name="min">The minimum angle.</param>
         /// <param name="max">The maximum angle.</param>
         /// <returns>
         ///     The resultant angle, such that:
-        ///         - If <paramref name="val"/>&lt;<paramref name="min"/>, return <paramref name="min"/>
-        ///         - If <paramref name="val"/>&gt;<paramref name="max"/>, return <paramref name="max"/>
-        ///         - Else return <paramref name="val"/>
+        ///     - If <paramref name="val" />&lt;<paramref name="min" />, return <paramref name="min" />
+        ///     - If <paramref name="val" />&gt;<paramref name="max" />, return <paramref name="max" />
+        ///     - Else return <paramref name="val" />
         /// </returns>
         public static Angle Clamp(Angle val, Angle min, Angle max)
         {
@@ -349,7 +352,7 @@ namespace weatherd.models
         }
 
         /// <summary>
-        /// Returns an angle between 0 and 360 degrees.
+        ///     Returns an angle between 0 and 360 degrees.
         /// </summary>
         /// <returns>An angle between 0 and 360 degrees.</returns>
         public Angle Normalize()
@@ -361,12 +364,11 @@ namespace weatherd.models
             while (deg > 360)
                 deg -= 360;
 
-
             return FromDegrees(deg % 360);
         }
 
         /// <summary>
-        /// Returns an angle between -90 and +90 degrees.
+        ///     Returns an angle between -90 and +90 degrees.
         /// </summary>
         /// <param name="lat">The angle to normalize.</param>
         /// <returns>The angle between -90 and +90 degrees.</returns>
@@ -379,7 +381,7 @@ namespace weatherd.models
         }
 
         /// <summary>
-        /// Returns an angle between -180 and +180 degrees.
+        ///     Returns an angle between -180 and +180 degrees.
         /// </summary>
         /// <param name="lon">The angle to normalize.</param>
         /// <returns>The angle between -180 and +180 degrees.</returns>
@@ -473,7 +475,7 @@ namespace weatherd.models
         /// <inheritdoc />
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj))
+            if (obj is null)
                 return false;
             return obj.GetType() == GetType() && Equals((Angle)obj);
         }

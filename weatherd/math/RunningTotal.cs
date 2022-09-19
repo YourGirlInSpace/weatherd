@@ -6,11 +6,6 @@ namespace weatherd.models
 {
     public class RunningTotal
     {
-        private readonly TimeSpan _totalTime;
-
-        private readonly Queue<(DateTime measurementTime, float value)> _queue =
-            new();
-
         public float Total
         {
             get
@@ -31,8 +26,13 @@ namespace weatherd.models
         {
             _queue.Enqueue((DateTime.UtcNow, point));
 
-            while (_queue.Count > 0 && (DateTime.UtcNow - _queue.Peek().measurementTime) > _totalTime)
+            while (_queue.Count > 0 && DateTime.UtcNow - _queue.Peek().measurementTime > _totalTime)
                 _queue.Dequeue();
         }
+
+        private readonly Queue<(DateTime measurementTime, float value)> _queue =
+            new();
+
+        private readonly TimeSpan _totalTime;
     }
 }

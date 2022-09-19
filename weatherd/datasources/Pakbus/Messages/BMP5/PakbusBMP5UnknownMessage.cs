@@ -1,9 +1,12 @@
-﻿namespace weatherd.datasources.Pakbus.Messages.BMP5
+﻿using System;
+
+namespace weatherd.datasources.pakbus.Messages.BMP5
 {
     public class PakbusBMP5UnknownMessage : PakbusBMP5Message
     {
         /// <inheritdoc />
-        public PakbusBMP5UnknownMessage(PakbusMessageType msgType, byte transactionNumber) : base(msgType, transactionNumber)
+        public PakbusBMP5UnknownMessage(PakbusMessageType msgType, byte transactionNumber) : base(
+            msgType, transactionNumber)
         {
         }
 
@@ -13,7 +16,7 @@
         }
 
         /// <inheritdoc />
-        public override byte[] Encode() => throw new System.NotImplementedException();
+        public override byte[] Encode() => throw new NotImplementedException();
 
         /// <inheritdoc />
         protected internal override PakbusMessage Decode(byte[] data) => this;

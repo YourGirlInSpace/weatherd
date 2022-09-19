@@ -1,7 +1,6 @@
-﻿using Amazon.TimestreamWrite.Model;
-using FluentAssertions;
-using weatherd.datasources.Pakbus;
-using weatherd.datasources.Pakbus.Messages.BMP5;
+﻿using FluentAssertions;
+using weatherd.datasources.pakbus;
+using weatherd.datasources.pakbus.Messages.BMP5;
 using Xunit;
 
 namespace weatherd.tests.datasources.Pakbus.Messages.BMP5

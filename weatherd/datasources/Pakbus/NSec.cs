@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace weatherd.datasources.Pakbus
+namespace weatherd.datasources.pakbus
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct NSec
     {
-        public static readonly DateTime Epoch = new(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         public const int SecondsBefore1990 = 631152000;
         public static readonly NSec Zero = new(0, 0);
 
@@ -21,10 +20,13 @@ namespace weatherd.datasources.Pakbus
 
         public DateTime ToTime()
         {
-            int ss = Seconds;
-            int ns = Nanoseconds;
-            
-            return Epoch + TimeSpan.FromSeconds(ss + ns / 1000000000.0);
+            long unixTime = SecondsBefore1990;
+
+            unixTime += Seconds;
+            unixTime *= 1000;
+            unixTime += Nanoseconds / 1000000;
+
+            return DateTimeOffset.FromUnixTimeMilliseconds(unixTime).DateTime;
         }
 
         public long ToUnixTimestamp()

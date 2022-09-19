@@ -1,19 +1,19 @@
-﻿using System;
-using Serilog;
+﻿using Serilog;
 
-namespace weatherd.datasources.Pakbus.Messages.BMP5
+namespace weatherd.datasources.pakbus.Messages.BMP5
 {
     public abstract class PakbusBMP5Message : PakbusMessage
     {
         protected PakbusBMP5Message(PakbusMessageType msgType, byte transactionNumber)
             : base(msgType, transactionNumber)
-        { }
+        {
+        }
 
         public new static PakbusMessage Decompile(PakbusProtocol protocol, byte[] bytes)
         {
             int msgTypeRaw = bytes[0];
             msgTypeRaw |= (byte)protocol << 8;
-            PakbusMessageType msgType = (PakbusMessageType)msgTypeRaw;
+            var msgType = (PakbusMessageType)msgTypeRaw;
 
             byte transNum = bytes[1];
 

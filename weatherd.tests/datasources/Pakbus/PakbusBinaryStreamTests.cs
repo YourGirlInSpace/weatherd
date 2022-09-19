@@ -1,6 +1,5 @@
-﻿using System.IO;
-using FluentAssertions;
-using weatherd.datasources.Pakbus;
+﻿using FluentAssertions;
+using weatherd.datasources.pakbus;
 using weatherd.io;
 using Xunit;
 

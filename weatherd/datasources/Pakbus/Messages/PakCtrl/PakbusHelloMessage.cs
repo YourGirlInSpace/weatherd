@@ -1,31 +1,32 @@
 ﻿using Serilog;
 using weatherd.io;
 
-namespace weatherd.datasources.Pakbus.Messages.PakCtrl
+namespace weatherd.datasources.pakbus.Messages.PakCtrl
 {
     public class PakbusHelloMessage : PakbusPakCtrlMessage
     {
+        public byte IsRouter { get; set; }
+        public byte HopMetric { get; set; }
+
         /// <inheritdoc />
         public PakbusHelloMessage(byte transactionNumber) : base(PakbusMessageType.PakCtrl_Hello, transactionNumber)
         {
         }
 
         public PakbusHelloMessage() : base(PakbusMessageType.PakCtrl_Hello, 0)
-        { }
-
-        public byte IsRouter { get; set; }
-        public byte HopMetric { get; set; }
+        {
+        }
 
         /// <inheritdoc />
         public override byte[] Encode()
         {
-            BinaryStream bs = new BinaryStream(Endianness.Big);
-            bs.Write((byte) ((int)MessageType & 0xFF));
+            var bs = new BinaryStream(Endianness.Big);
+            bs.Write((byte)((int)MessageType & 0xFF));
             bs.Write(TransactionNumber);
 
             bs.Write(IsRouter);
             bs.Write(HopMetric);
-            bs.Write((ushort) 0xFFFF);
+            bs.Write((ushort)0xFFFF);
 
             return bs.ToArray();
         }
@@ -33,12 +34,12 @@ namespace weatherd.datasources.Pakbus.Messages.PakCtrl
         /// <inheritdoc />
         protected internal override PakbusMessage Decode(byte[] data)
         {
-            BinaryStream bs = new BinaryStream(data, Endianness.Big);
+            var bs = new BinaryStream(data, Endianness.Big);
             bs.Skip(2);
 
             IsRouter = bs.ReadByte();
             HopMetric = bs.ReadByte();
-            
+
             Log.Verbose("[Pakbus] Hello?  IsRouter={isRouter:X}, HopMetric={hopMetric:X}", IsRouter, HopMetric);
 
             return this;

@@ -1,4 +1,4 @@
-﻿namespace weatherd.datasources.Pakbus.Messages.BMP5
+﻿namespace weatherd.datasources.pakbus.Messages.BMP5
 {
     public enum PakbusXTDResponseCode
     {

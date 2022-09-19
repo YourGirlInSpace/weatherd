@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using weatherd.datasources.Pakbus;
+using weatherd.datasources.pakbus;
 using Xunit;
 
 namespace weatherd.tests.datasources.Pakbus

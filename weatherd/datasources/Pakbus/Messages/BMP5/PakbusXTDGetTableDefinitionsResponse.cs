@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System;
 using System.IO;
 using weatherd.io;
 
-namespace weatherd.datasources.Pakbus.Messages.BMP5
+namespace weatherd.datasources.pakbus.Messages.BMP5
 {
     public class PakbusXTDGetTableDefinitionsResponse : PakbusBMP5Message
     {
@@ -15,19 +14,22 @@ namespace weatherd.datasources.Pakbus.Messages.BMP5
 
         public PakbusXTDGetTableDefinitionsResponse()
             : base(PakbusMessageType.BMP5_XTDGetTableDefinitionsResponse, 0)
-        { }
-        /// <inheritdoc />
-        protected PakbusXTDGetTableDefinitionsResponse(PakbusMessageType msgType, byte transactionNumber) : base(msgType, transactionNumber)
         {
         }
 
         /// <inheritdoc />
-        public override byte[] Encode() => throw new System.NotImplementedException();
+        protected PakbusXTDGetTableDefinitionsResponse(PakbusMessageType msgType, byte transactionNumber) : base(
+            msgType, transactionNumber)
+        {
+        }
+
+        /// <inheritdoc />
+        public override byte[] Encode() => throw new NotImplementedException();
 
         /// <inheritdoc />
         protected internal override PakbusMessage Decode(byte[] data)
         {
-            BinaryStream bs = new BinaryStream(data, Endianness.Big);
+            var bs = new BinaryStream(data, Endianness.Big);
 
             bs.Skip(2);
 
