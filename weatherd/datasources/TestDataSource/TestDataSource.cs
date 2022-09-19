@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if DEBUG
+using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using System.Timers;
@@ -6,7 +7,6 @@ using Serilog;
 using UnitsNet;
 using UnitsNet.Units;
 
-#if DEBUG
 namespace weatherd.datasources.testdatasource
 {
     public interface ITestDataSource : IAsyncWeatherDataSource

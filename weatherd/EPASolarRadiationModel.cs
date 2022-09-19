@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if DEBUG
+using System;
 using UnitsNet;
 using UnitsNet.Units;
 using static System.Math;
@@ -72,3 +73,4 @@ namespace weatherd
         }
     }
 }
+#endif

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if DEBUG
+using System;
 using weatherd.models;
 
 namespace weatherd
@@ -234,3 +235,4 @@ namespace weatherd
         }
     }
 }
+#endif
