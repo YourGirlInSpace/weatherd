@@ -16,11 +16,12 @@
     }
   },
   "TimestreamService": {
-    "EnableDataWrite": false
+    "EnableDataWrite": true,
+    "Altitude": 113 
   },
   "PakbusDataSource": {
     "Port": {
-      "Name": "/dev/ttyUSB1",
+      "Name": "/dev/ttyUSB0",
       "Baud": 9600
     },
     "NodeID": 4092,

@@ -16,7 +16,8 @@
     }
   },
   "TimestreamService": {
-    "EnableDataWrite": true 
+    "EnableDataWrite": true,
+    "Altitude": 113
   },
   "PakbusDataSource": {
     "Port": {

@@ -10,6 +10,7 @@ using Amazon.TimestreamWrite;
 using Amazon.TimestreamWrite.Model;
 using Microsoft.Extensions.Configuration;
 using Serilog;
+using UnitsNet;
 using UnitsNet.Units;
 using weatherd.datasources;
 
@@ -28,7 +29,9 @@ namespace weatherd.services
         private IAsyncWeatherDataSource _wxDataSource;
         private WeatherState lastState;
         private AmazonTimestreamWriteClient timestreamClient;
-        private bool _enableDataWrite = true;
+        private readonly bool _enableDataWrite = true;
+
+        public float _altitude = 0;
 
         public WeatherTimestreamService(IConfiguration config)
         {
@@ -39,6 +42,7 @@ namespace weatherd.services
             if (tsConfig is not null)
             {
                 _enableDataWrite = tsConfig.GetValue("EnableDataWrite", true);
+                _altitude = tsConfig.GetValue("Altitude", 0f);
             }
         }
 
@@ -106,12 +110,17 @@ namespace weatherd.services
                 Log.Warning("Sample retrieved from weather data source did not update at polling interval");
                 return;
             }
+
+            // Sea level pressure compensation
+            if (_altitude != 0)
+                wxState.SeaLevelPressure = new Pressure(wxState.Pressure.Pascals * Math.Pow(1 - (0.0065 * _altitude) / (wxState.Temperature.DegreesCelsius + 0.0065 * _altitude + 273.15), -5.257), PressureUnit.Pascal);
             
-            Log.Verbose("Sample:  T={temp}  Dp={dewpoint}  RH={relativeHumidity}  P={pressure}  L={irradiance}  Ws={windSpeed}  Wd={windDir}  Rain={rain}",
+            Log.Verbose("Sample:  T={temp}  Dp={dewpoint}  RH={relativeHumidity}  P={pressure} SLP={seaLevelPressure} L={irradiance}  Ws={windSpeed}  Wd={windDir}  Rain={rain}",
                         wxState.Temperature.ToUnit(TemperatureUnit.DegreeFahrenheit),
                         wxState.Dewpoint.ToUnit(TemperatureUnit.DegreeFahrenheit),
                         wxState.RelativeHumidity,
                         wxState.Pressure.ToUnit(PressureUnit.InchOfMercury),
+                        wxState.SeaLevelPressure.ToUnit(PressureUnit.InchOfMercury),
                         wxState.Luminosity.ToUnit(IrradianceUnit.WattPerSquareMeter),
                         wxState.WindSpeed.ToUnit(SpeedUnit.MilePerHour),
                         wxState.WindDirection,
