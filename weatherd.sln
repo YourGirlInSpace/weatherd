@@ -1,0 +1,51 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31605.320
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "weatherd", "weatherd\weatherd.csproj", "{FB1B9B40-3123-40DB-A4F1-140447A57242}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "weatherd.tests", "weatherd.tests\weatherd.tests.csproj", "{27F081F0-B981-417C-9665-CDD9578901C9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug (Linux)|Any CPU = Debug (Linux)|Any CPU
+		Debug (No Verbose)|Any CPU = Debug (No Verbose)|Any CPU
+		Debug|Any CPU = Debug|Any CPU
+		Release (Linux)|Any CPU = Release (Linux)|Any CPU
+		Release (Windows)|Any CPU = Release (Windows)|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FB1B9B40-3123-40DB-A4F1-140447A57242}.Debug (Linux)|Any CPU.ActiveCfg = Debug (Linux)|Any CPU
+		{FB1B9B40-3123-40DB-A4F1-140447A57242}.Debug (Linux)|Any CPU.Build.0 = Debug (Linux)|Any CPU
+		{FB1B9B40-3123-40DB-A4F1-140447A57242}.Debug (No Verbose)|Any CPU.ActiveCfg = Debug (No Verbose)|Any CPU
+		{FB1B9B40-3123-40DB-A4F1-140447A57242}.Debug (No Verbose)|Any CPU.Build.0 = Debug (No Verbose)|Any CPU
+		{FB1B9B40-3123-40DB-A4F1-140447A57242}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB1B9B40-3123-40DB-A4F1-140447A57242}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB1B9B40-3123-40DB-A4F1-140447A57242}.Release (Linux)|Any CPU.ActiveCfg = Release (Linux)|Any CPU
+		{FB1B9B40-3123-40DB-A4F1-140447A57242}.Release (Linux)|Any CPU.Build.0 = Release (Linux)|Any CPU
+		{FB1B9B40-3123-40DB-A4F1-140447A57242}.Release (Windows)|Any CPU.ActiveCfg = Release (Windows)|Any CPU
+		{FB1B9B40-3123-40DB-A4F1-140447A57242}.Release (Windows)|Any CPU.Build.0 = Release (Windows)|Any CPU
+		{FB1B9B40-3123-40DB-A4F1-140447A57242}.Release|Any CPU.ActiveCfg = Release (Windows)|Any CPU
+		{FB1B9B40-3123-40DB-A4F1-140447A57242}.Release|Any CPU.Build.0 = Release (Windows)|Any CPU
+		{27F081F0-B981-417C-9665-CDD9578901C9}.Debug (Linux)|Any CPU.ActiveCfg = Debug (Linux)|Any CPU
+		{27F081F0-B981-417C-9665-CDD9578901C9}.Debug (Linux)|Any CPU.Build.0 = Debug (Linux)|Any CPU
+		{27F081F0-B981-417C-9665-CDD9578901C9}.Debug (No Verbose)|Any CPU.ActiveCfg = Debug (No Verbose)|Any CPU
+		{27F081F0-B981-417C-9665-CDD9578901C9}.Debug (No Verbose)|Any CPU.Build.0 = Debug (No Verbose)|Any CPU
+		{27F081F0-B981-417C-9665-CDD9578901C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{27F081F0-B981-417C-9665-CDD9578901C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{27F081F0-B981-417C-9665-CDD9578901C9}.Release (Linux)|Any CPU.ActiveCfg = Release|Any CPU
+		{27F081F0-B981-417C-9665-CDD9578901C9}.Release (Linux)|Any CPU.Build.0 = Release|Any CPU
+		{27F081F0-B981-417C-9665-CDD9578901C9}.Release (Windows)|Any CPU.ActiveCfg = Release|Any CPU
+		{27F081F0-B981-417C-9665-CDD9578901C9}.Release (Windows)|Any CPU.Build.0 = Release|Any CPU
+		{27F081F0-B981-417C-9665-CDD9578901C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{27F081F0-B981-417C-9665-CDD9578901C9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6681EB4D-8EF9-41D7-AA52-97B13E694BAA}
+	EndGlobalSection
+EndGlobal

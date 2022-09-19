@@ -1,0 +1,74 @@
+﻿{
+  "DataSource": "Test",
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information"
+    }
+  },
+  "Serilog": {
+    "Using": [ "AWS.Logger.SeriLog" ],
+    "Region": "us-east-1",
+    "LogGroup": "weatherd",
+    "LogLevel": {
+      "Default": "Information",
+      "System": "Information",
+      "Microsoft": "Information"
+    }
+  },
+  "TimestreamService": {
+    "EnableDataWrite": false
+  },
+  "PakbusDataSource": {
+    "Port": {
+      "Name": "/dev/ttyUSB1",
+      "Baud": 9600
+    },
+    "NodeID": 4092,
+    "TargetNode": 1,
+    "SecurityCode": 0
+  },
+  "TestDataSource": {
+    "Enabled": true,
+    "PollingInterval": 1,
+    "SampleInterval": 1,
+
+    "Latitude": 47.5,
+    "Longitude": -122.25,
+
+    "Synthetics": {
+      "Temperature": {
+        "Type": "Diurnal",
+        "Min": 15,
+        "Max": 30,
+        "Trough": 4,
+        "Period": 24,
+        "Deviation": 0.2
+      },
+      "Dewpoint": {
+        "Type": "Diurnal",
+        "Min": 10,
+        "Max": 25,
+        "Trough": 4,
+        "Period": 24,
+        "Deviation": 0.2
+      },
+      "Pressure": {
+        "Type": "Diurnal",
+        "Min": "1013.25",
+        "Max": "1014.65",
+        "Trough": 4,
+        "Period": 12,
+        "Deviation": 0.1
+      },
+      "Wind": {
+        "Type": "SyntheticWind",
+        "PeakWindSpeedHour": 15,
+        "DiurnalPatternStrength": 0.25,
+        "OneHourAutocorrelationFactor": 0.85,
+        "WeibullShapeFactor": 2.0,
+        "MeanWindSpeed": 3.93,
+        "TimeStep": 1
+      }
+    }
+  }
+}
