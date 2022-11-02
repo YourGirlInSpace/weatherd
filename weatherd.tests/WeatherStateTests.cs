@@ -22,7 +22,6 @@ namespace weatherd.tests
             WeatherState weatherState = new WeatherState
             {
                 Pressure = standardPressure,
-                SeaLevelPressure = standardPressure,
                 Temperature = temp,
                 Dewpoint = dewpoint
             };
@@ -43,7 +42,6 @@ namespace weatherd.tests
             WeatherState weatherState = new WeatherState
             {
                 Pressure = standardPressure,
-                SeaLevelPressure = standardPressure,
                 Temperature = temp
             };
 
@@ -68,7 +66,6 @@ namespace weatherd.tests
             WeatherState weatherState = new WeatherState
             {
                 Pressure = standardPressure,
-                SeaLevelPressure = standardPressure,
                 Temperature = temp,
                 RelativeHumidity = humidity
             };
@@ -89,7 +86,6 @@ namespace weatherd.tests
             WeatherState weatherState = new WeatherState
             {
                 Pressure = standardPressure,
-                SeaLevelPressure = standardPressure,
                 Temperature = temp
             };
 
@@ -112,7 +108,6 @@ namespace weatherd.tests
             WeatherState weatherState = new WeatherState
             {
                 Pressure = standardPressure,
-                SeaLevelPressure = standardPressure,
                 Temperature = temp,
                 Dewpoint = dewpoint
             };
@@ -120,6 +115,27 @@ namespace weatherd.tests
             // Assert
             weatherState.Should().NotBeNull();
             weatherState.DewpointDepression.Should().Be(temp - dewpoint);
+        }
+        
+        [Fact]
+        public void WetBulb_ShouldBeAccurate_WhenProvidedValidTemperatureAndHumidity()
+        {
+            // Arrange
+            Pressure standardPressure = new Pressure(1013.25, PressureUnit.Hectopascal);
+            Temperature temp = new Temperature(17, TemperatureUnit.DegreeCelsius);
+            RelativeHumidity humidity = new RelativeHumidity(80, RelativeHumidityUnit.Percent);
+
+            // Act
+            WeatherState weatherState = new WeatherState
+            {
+                Pressure = standardPressure,
+                Temperature = temp,
+                RelativeHumidity = humidity
+            };
+
+            // Assert
+            weatherState.Should().NotBeNull();
+            weatherState.WetBulbTemperature.DegreesCelsius.Should().BeApproximately(14.65, 1);
         }
     }
 }

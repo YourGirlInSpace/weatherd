@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Serilog;
 
@@ -10,7 +11,7 @@ namespace weatherd.datasources.pakbus
             : base(header, null)
         { }
 
-        public override byte[] Encode()
+        public override IEnumerable<byte> Encode()
         {
             byte[] encodedFrame = Header.Encode();
             

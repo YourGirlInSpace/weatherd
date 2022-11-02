@@ -1,5 +1,8 @@
 ﻿{
   "DataSource": "Test",
+  "Site": {
+    "Elevation": 113 
+  },
   "Logging": {
     "LogLevel": {
       "Default": "Information"
@@ -16,8 +19,7 @@
     }
   },
   "TimestreamService": {
-    "EnableDataWrite": true,
-    "Altitude": 113 
+    "EnableDataWrite": true
   },
   "PakbusDataSource": {
     "Port": {

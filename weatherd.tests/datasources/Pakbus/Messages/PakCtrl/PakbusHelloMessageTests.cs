@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System.Linq;
+using FluentAssertions;
 using weatherd.datasources.pakbus;
 using weatherd.datasources.pakbus.Messages.PakCtrl;
 using Xunit;
@@ -31,7 +32,7 @@ namespace weatherd.tests.datasources.Pakbus.Messages.PakCtrl
 
             PakbusPacket packet = new PakbusPacket(header, cmdMessage);
 
-            byte[] actualData = packet.Encode();
+            byte[] actualData = packet.Encode().ToArray();
             
             // Assert
             actualData.Should().NotBeNull();

@@ -183,7 +183,7 @@ namespace weatherd.datasources.testdatasource
                 Temperature = new Temperature(simTemp, TemperatureUnit.DegreeCelsius),
                 Dewpoint = new Temperature(simDewpoint, TemperatureUnit.DegreeCelsius),
                 Pressure = new Pressure(simPressure, PressureUnit.Hectopascal),
-                SeaLevelPressure = new Pressure(simPressure, PressureUnit.Hectopascal),
+                Elevation = new Length(0, LengthUnit.Meter),
                 Luminosity = simSolarRad,
                 WindDirection = new Angle(windDir, AngleUnit.Degree),
                 WindSpeed = new Speed(windSpeed, SpeedUnit.MeterPerSecond),

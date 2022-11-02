@@ -90,9 +90,15 @@ namespace weatherd
         public Pressure Pressure { get; set; }
 
         /// <summary>
+        /// Station elevation in meters
+        /// </summary>
+        public Length Elevation { get; set; }
+            = new(0, LengthUnit.Meter);
+
+        /// <summary>
         /// Sea level pressure in hPa
         /// </summary>
-        public Pressure SeaLevelPressure { get; set; }
+        public Pressure SeaLevelPressure => new(Pressure.Pascals * Pow(1 - γstd * Elevation.Meters / (Temperature.DegreesCelsius + γstd * Elevation.Meters + T0), -(g/(ℜd*γstd))), PressureUnit.Pascal);
 
         /// <summary>
         /// Wind speed from a standard 10m anemometer, in m/s
@@ -143,6 +149,16 @@ namespace weatherd
         /// Highest sustained wind gust over 1 hour, in m/s
         /// </summary>
         public Speed WindGust1Hour { get; set; }
+
+        /// <summary>
+        /// Battery voltage
+        /// </summary>
+        public ElectricPotentialDc BatteryVoltage { get; set; }
+
+        /// <summary>
+        /// Station enclosure temperature in °C
+        /// </summary>
+        public Temperature EnclosureTemperature { get; set; }
 
         /// <summary>
         /// Ambient station dewpoint in °C
@@ -251,7 +267,7 @@ namespace weatherd
         /// <summary>
         /// Density altitude in meters
         /// </summary>
-        public Length DensityAltitude => new(Tstd / γstd * (1 - Pow(Pressure.Kilopascals / Pstd / (Temperature.Kelvins / Tstd), γstd * ℜ / (g * Md - γstd * ℜ))), LengthUnit.Meter);
+        public Length DensityAltitude => new(Tstd / γstd * (1 - Pow(Pressure.Hectopascals / Pstd / (Temperature.Kelvins / Tstd), γstd * ℜ / (g * Md - γstd * ℜ))), LengthUnit.Meter);
 
         /// <summary>
         /// Virtual air temperature in °C
@@ -271,11 +287,13 @@ namespace weatherd
         /// <summary>
         /// Wet bulb temperature in °C
         /// </summary>
-        public Temperature WetBulbTemperature => new(Temperature.DegreesCelsius * Atan(0.151977 * Sqrt(RelativeHumidity.Percent/100.0 + 8.313659))
-                                                     - 4.686035 + Atan(Temperature.DegreesCelsius + RelativeHumidity.Percent/100.0)
-                                                     - Atan(RelativeHumidity.Percent/100.0 - 1.676331) + 0.00391838
-                                                     * Pow(RelativeHumidity.Percent/100.0, 3 / 2.0)
-                                                     * Atan(0.023101 * RelativeHumidity.Percent/100.0), TemperatureUnit.DegreeCelsius);
+        public Temperature WetBulbTemperature => new(Temperature.DegreesCelsius
+                                                     * Atan(0.151977 * Sqrt(RelativeHumidity.Percent + 8.313659))
+                                                     + Atan(Temperature.DegreesCelsius + RelativeHumidity.Percent)
+                                                     - Atan(RelativeHumidity.Percent - 1.676331)
+                                                     + 0.00391838 * Pow(RelativeHumidity.Percent, 3.0 / 2.0)
+                                                     * Atan(0.023101 * RelativeHumidity.Percent)
+                                                     - 4.686035, TemperatureUnit.DegreeCelsius);
 
         /// <summary>
         /// Height of the lifted condensation level in meters
@@ -318,7 +336,7 @@ namespace weatherd
         /// Calculates the standard pressure for a given geopotential height.
         /// </summary>
         /// <remarks>
-        /// <para>Geopotential height can be approximated to actual height in a pinch.  To calculate geopotential height, use <see cref="GeopotentialHeight">GeopotentialHeight</see></para>
+        /// <para>Geopotential height can be approximated to actual height in a pinch.  To calculate geopotential height, use <see cref="CalculateGeopotentialHeight">GeopotentialHeight</see></para>
         /// <para>Roland Stull, "Practical Meteorology" pg. 12 (for 0-51km)<br />
         /// <a href="http://www.braeunig.us/space/atmmodel.htm">http://www.braeunig.us/space/atmmodel.htm</a> (above 51km)<br />
         /// Validation data: <a href="https://www.avs.org/AVS/files/c7/c7edaedb-95b2-438f-adfb-36de54f87b9e.pdf">https://www.avs.org/AVS/files/c7/c7edaedb-95b2-438f-adfb-36de54f87b9e.pdf</a></para>
@@ -326,23 +344,23 @@ namespace weatherd
         /// <param name="geopotH">Geopotential height in km</param>
         /// <returns>Standard pressure in hPa (mb) for the provided geopotential height.</returns>
         /// <exception cref="ArgumentOutOfRangeException">If the geopotential height is either below 0 km or above 84.85 km.</exception>
-        public static Pressure StandardPressure(double geopotH)
+        public static Pressure CalculateStandardPressure(Length geopotH)
         {
             /* Roland Stull, "Practical Meteorology" pg. 12 (for 0-51km)
              * http://www.braeunig.us/space/atmmodel.htm (above 51km)
              * Validation data: https://www.avs.org/AVS/files/c7/c7edaedb-95b2-438f-adfb-36de54f87b9e.pdf
              */
 
-            return geopotH switch
+            return geopotH.Kilometers switch
             {
-                <= 11 => new Pressure(101.325 * Pow(288.15 / StandardTemperature(geopotH).DegreesCelsius, -5.255877), PressureUnit.Hectopascal),
-                <= 20 => new Pressure(22.63206 * Exp(-0.1577 * (geopotH - 11)), PressureUnit.Hectopascal),
-                <= 32 => new Pressure(5.474889 * Pow(216.65 / StandardTemperature(geopotH).DegreesCelsius, 31.16319), PressureUnit.Hectopascal),
-                <= 47 => new Pressure(0.8680187 * Pow(228.65 / StandardTemperature(geopotH).DegreesCelsius, 12.2011), PressureUnit.Hectopascal),
-                <= 51 => new Pressure(0.110 * Exp(-0.1262 * (geopotH - 47)), PressureUnit.Hectopascal),
-                <= 71 => new Pressure(0.06693887 * Pow(270.65 / StandardTemperature(geopotH).DegreesCelsius, -12.2011),
+                <= 11 => new Pressure(101.325    * Pow(288.15 / CalculateStandardTemperature(geopotH).DegreesCelsius, -5.255877), PressureUnit.Hectopascal),
+                <= 20 => new Pressure(22.63206   * Exp(-0.1577 * (geopotH.Kilometers - 11)), PressureUnit.Hectopascal),
+                <= 32 => new Pressure(5.474889   * Pow(216.65 / CalculateStandardTemperature(geopotH).DegreesCelsius, 31.16319), PressureUnit.Hectopascal),
+                <= 47 => new Pressure(0.8680187  * Pow(228.65 / CalculateStandardTemperature(geopotH).DegreesCelsius, 12.2011), PressureUnit.Hectopascal),
+                <= 51 => new Pressure(0.110      * Exp(-0.1262 * (geopotH.Kilometers - 47)), PressureUnit.Hectopascal),
+                <= 71 => new Pressure(0.06693887 * Pow(270.65 / CalculateStandardTemperature(geopotH).DegreesCelsius, -12.2011),
                                       PressureUnit.Hectopascal),
-                <= 84.85 => new Pressure(0.003956420 * Pow(214.65 / StandardTemperature(geopotH).DegreesCelsius, -17.0816),
+                <= 84.85 => new Pressure(0.003956420 * Pow(214.65 / CalculateStandardTemperature(geopotH).DegreesCelsius, -17.0816),
                                          PressureUnit.Hectopascal),
                 _ => throw new ArgumentOutOfRangeException(nameof(geopotH),
                                                            "Geopotential height must be in range 0 - 84.85km.")
@@ -353,7 +371,7 @@ namespace weatherd
         /// Calculates the standard temperature for a given geopotential height.
         /// </summary>
         /// <remarks>
-        /// <para>Geopotential height can be approximated to actual height in a pinch.  To calculate geopotential height, use <see cref="GeopotentialHeight">GeopotentialHeight</see></para>
+        /// <para>Geopotential height can be approximated to actual height in a pinch.  To calculate geopotential height, use <see cref="CalculateGeopotentialHeight">GeopotentialHeight</see></para>
         /// <para>Roland Stull, "Practical Meteorology" pg. 12 (for 0-51km)<br />
         /// <a href="http://www.braeunig.us/space/atmmodel.htm">http://www.braeunig.us/space/atmmodel.htm</a> (above 51km)<br />
         /// Validation data: <a href="https://www.avs.org/AVS/files/c7/c7edaedb-95b2-438f-adfb-36de54f87b9e.pdf">https://www.avs.org/AVS/files/c7/c7edaedb-95b2-438f-adfb-36de54f87b9e.pdf</a></para>
@@ -361,17 +379,17 @@ namespace weatherd
         /// <param name="geopotH">Geopotential height in km</param>
         /// <returns>Standard temperature in °C for the provided geopotential height.</returns>
         /// <exception cref="ArgumentOutOfRangeException">If the geopotential height is either below 0 km or above 84.85 km.</exception>
-        public static Temperature StandardTemperature(double geopotH)
+        public static Temperature CalculateStandardTemperature(Length geopotH)
         {
-            return geopotH switch
+            return geopotH.Kilometers switch
             {
-                <= 11 => new Temperature(288.15 - 6.5 * geopotH, TemperatureUnit.DegreeCelsius),
+                <= 11 => new Temperature(288.15 - 6.5 * geopotH.Kilometers, TemperatureUnit.DegreeCelsius),
                 <= 20 => new Temperature(216.65, TemperatureUnit.DegreeCelsius),
-                <= 32 => new Temperature(196.65 + geopotH, TemperatureUnit.DegreeCelsius),
-                <= 47 => new Temperature(228.65 + 2.8 * (geopotH - 32), TemperatureUnit.DegreeCelsius),
+                <= 32 => new Temperature(196.65 + geopotH.Kilometers, TemperatureUnit.DegreeCelsius),
+                <= 47 => new Temperature(228.65 + 2.8 * (geopotH.Kilometers - 32), TemperatureUnit.DegreeCelsius),
                 <= 51 => new Temperature(270.65, TemperatureUnit.DegreeCelsius),
-                <= 71 => new Temperature(270.65 - 2.8 * (geopotH - 51), TemperatureUnit.DegreeCelsius),
-                <= 84.85 => new Temperature(214.65 - 2 * (geopotH - 71), TemperatureUnit.DegreeCelsius),
+                <= 71 => new Temperature(270.65 - 2.8 * (geopotH.Kilometers - 51), TemperatureUnit.DegreeCelsius),
+                <= 84.85 => new Temperature(214.65 - 2 * (geopotH.Kilometers - 71), TemperatureUnit.DegreeCelsius),
                 _ => throw new ArgumentOutOfRangeException(nameof(geopotH),
                                                            "Geopotential height must be in range 0 - 84.85km.")
             };
@@ -384,12 +402,12 @@ namespace weatherd
         /// <returns>Geopotential height, in meters.</returns>
         /// <remarks>The calculation here is an approximation based on Roland Stull's "Practical Meteorology" pg. 11.</remarks>
         /// <exception cref="ArgumentOutOfRangeException">If <paramref name="elev"/> is less than the inverse of <see cref="Rearth"/>.</exception>
-        public static Length GeopotentialHeight(double elev)
+        public static Length CalculateGeopotentialHeight(Length elev)
         {
-            if (elev <= -Rearth)
+            if (elev.Meters <= -Rearth)
                 throw new ArgumentOutOfRangeException(nameof(elev), $"{nameof(elev)} must not be less than the inverse radius of the Earth!  ({nameof(elev)} must be greater than {-Rearth}m!)");
 
-            return new Length(Rearth * elev / (Rearth + elev), LengthUnit.Meter);
+            return new Length(Rearth * elev.Meters / (Rearth + elev.Meters), LengthUnit.Meter);
         }
 
         /// <summary>

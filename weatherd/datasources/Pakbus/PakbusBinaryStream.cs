@@ -120,7 +120,7 @@ namespace weatherd.datasources.pakbus
                               | ((ulong)_buffer[3] << 24)
                               | ((ulong)_buffer[4] << 32)
                               | ((ulong)_buffer[5] << 40);
-
+            
             int ss = (int)(tmpBuffer / 100000);
             int ns = (int)(tmpBuffer % 100000 * 1000);
 

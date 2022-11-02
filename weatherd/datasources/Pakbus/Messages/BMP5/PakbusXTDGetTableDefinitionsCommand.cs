@@ -4,8 +4,8 @@ namespace weatherd.datasources.pakbus.Messages.BMP5
 {
     public class PakbusXTDGetTableDefinitionsCommand : PakbusBMP5Message
     {
-        public int SecurityCode { get; }
-        public int FragmentNumber { get; }
+        public int SecurityCode { get; private set; }
+        public int FragmentNumber { get; private set; }
 
         public PakbusXTDGetTableDefinitionsCommand(byte transactionNumber, int securityCode, int fragmentNumber)
             : base(PakbusMessageType.BMP5_XTDGetTableDefinitions, transactionNumber)
@@ -47,6 +47,9 @@ namespace weatherd.datasources.pakbus.Messages.BMP5
 
             int securityCode = bs.ReadUInt16();
             int fragmentNum = bs.ReadUInt16();
+
+            SecurityCode = securityCode;
+            FragmentNumber = fragmentNum;
 
             return this;
         }

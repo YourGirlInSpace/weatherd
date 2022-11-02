@@ -1,4 +1,5 @@
-﻿using weatherd.io;
+﻿using System;
+using weatherd.io;
 
 namespace weatherd.datasources.pakbus.Messages.BMP5
 {
@@ -6,6 +7,14 @@ namespace weatherd.datasources.pakbus.Messages.BMP5
     {
         public PakbusXTDResponseCode ResponseCode { get; set; }
         public NSec Time { get; set; }
+
+        /// <inheritdoc />
+        public PakbusXTDClockResponse(byte transactionNumber, PakbusXTDResponseCode responseCode, DateTime time) : base(
+            PakbusMessageType.BMP5_XTDClockResponse, transactionNumber)
+        {
+            ResponseCode = responseCode;
+            Time = NSec.FromTime(time);
+        }
 
         /// <inheritdoc />
         public PakbusXTDClockResponse(PakbusMessageType msgType, byte transactionNumber) : base(

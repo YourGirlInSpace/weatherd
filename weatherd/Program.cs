@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AWS.Logger.SeriLog;
@@ -8,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using weatherd.datasources;
 using weatherd.datasources.pakbus;
+using weatherd.io;
 using weatherd.services;
 #if DEBUG
 using weatherd.datasources.testdatasource;
@@ -30,13 +32,41 @@ namespace weatherd
                             .AddEnvironmentVariables()
                             .Build();
 
+            IServiceProvider serviceProvider = ConfigureServices(args);
+
+            var timestreamService = serviceProvider.GetRequiredService<IWeatherTimestreamService>();
+            IAsyncWeatherDataSource dataSource = GetConfiguredDataSource(serviceProvider);
+
+            if (!await timestreamService.Initialize(dataSource))
+            {
+                Log.Fatal("Failed to initialize Timestream service.");
+                return;
+            }
+
+            AutoResetEvent endSignaller = new AutoResetEvent(false);
+            if (!await timestreamService.Start(endSignaller))
+            {
+                Log.Fatal("Failed to start Timestream service.");
+                return;
+            }
+            
+            // Wait for the timestream service to report that it is finished.
+            endSignaller.WaitOne();
+
+            Log.Information("weatherd is now exiting.");
+            Log.Verbose("Thank you for participating in this Aperture Science computer-aided enrichment activity.");
+        }
+
+        private static IServiceProvider ConfigureServices(IEnumerable<string> args)
+        {
             var services = new ServiceCollection();
             services.AddSingleton(Configuration);
+            services.AddTransient<ITimestreamClient, TimestreamClient>();
             services.AddSingleton<IWeatherTimestreamService, WeatherTimestreamService>();
 #if DEBUG
             services.AddTransient<ITestDataSource, TestDataSource>();
-            services.AddTransient<IPakbusDataSource, PakbusDataSource>();
 #endif
+            services.AddTransient<IPakbusDataSource, PakbusDataSource>();
 
             Parser.Default.ParseArguments<CommandLineOptions>(args)
                   .WithParsed(o =>
@@ -49,20 +79,25 @@ namespace weatherd
 #endif
                   });
 
-            ServiceProvider serviceProvider = services.BuildServiceProvider();
+            return services.BuildServiceProvider();
+        }
 
-            var timestreamService = serviceProvider.GetRequiredService<IWeatherTimestreamService>();
+        private static IAsyncWeatherDataSource GetConfiguredDataSource(IServiceProvider serviceProvider)
+        {
+            if (serviceProvider == null)
+                throw new ArgumentNullException(nameof(serviceProvider));
 
             if (!Enum.TryParse(Configuration.GetValue("DataSource", "Test"), out DataSourceType dataSourceType))
             {
                 Log.Fatal("Could not determine data source type to load.");
-                return;
+                return null;
             }
+            
+            Log.Information("Loading the {dataSourceType} data source!", dataSourceType);
 
-            IAsyncWeatherDataSource asyncWxDataSource;
             try
             {
-                asyncWxDataSource = dataSourceType switch
+                return dataSourceType switch
                 {
                     DataSourceType.Pakbus => serviceProvider.GetRequiredService<IPakbusDataSource>(),
 #if DEBUG
@@ -76,25 +111,8 @@ namespace weatherd
             } catch (Exception ex)
             {
                 Log.Fatal(ex, "Could not configure data source.");
-                return;
+                return null;
             }
-
-            Log.Information("Loading the {dataSourceType} data source!", dataSourceType);
-
-            if (!await timestreamService.Initialize(asyncWxDataSource))
-            {
-                Log.Fatal("Failed to initialize Timestream service.");
-                return;
-            }
-
-            if (!await timestreamService.Start())
-            {
-                Log.Fatal("Failed to start Timestream service.");
-                return;
-            }
-
-            while (true)
-                Thread.Sleep(1000);
         }
 
         private static void InitializeLogger(bool verboseEnabled, bool cloudwatchEnabled)

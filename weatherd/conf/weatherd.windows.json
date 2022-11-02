@@ -1,5 +1,5 @@
 ﻿{
-  "DataSource": "Pakbus",
+  "DataSource": "Test",
   "Logging": {
     "LogLevel": {
       "Default": "Information"
@@ -16,7 +16,7 @@
     }
   },
   "TimestreamService": {
-    "EnableDataWrite": true,
+    "EnableDataWrite": false,
     "Altitude": 113
   },
   "PakbusDataSource": {

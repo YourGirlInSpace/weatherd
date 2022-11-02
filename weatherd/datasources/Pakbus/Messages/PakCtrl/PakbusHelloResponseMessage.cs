@@ -1,5 +1,6 @@
 ﻿using System;
 using Serilog;
+using weatherd.io;
 
 namespace weatherd.datasources.pakbus.Messages.PakCtrl
 {
@@ -7,6 +8,15 @@ namespace weatherd.datasources.pakbus.Messages.PakCtrl
     {
         public byte IsRouter { get; private set; }
         public byte HopMetric { get; private set; }
+
+        
+
+        public PakbusHelloResponseMessage(byte transactionNumber, byte isRouter, byte hopMetric)
+            : base(PakbusMessageType.PakCtrl_HelloResponse, transactionNumber)
+        {
+            IsRouter = isRouter;
+            HopMetric = hopMetric;
+        }
 
         /// <inheritdoc />
         public PakbusHelloResponseMessage(PakbusMessageType msgType, byte transactionNumber) : base(
@@ -20,7 +30,17 @@ namespace weatherd.datasources.pakbus.Messages.PakCtrl
         }
 
         /// <inheritdoc />
-        public override byte[] Encode() => throw new NotImplementedException();
+        public override byte[] Encode()
+        {
+            var bs = new BinaryStream(Endianness.Big);
+            bs.Write((byte)((int)MessageType & 0xFF));
+            bs.Write(TransactionNumber);
+
+            bs.Write(IsRouter);
+            bs.Write(HopMetric);
+
+            return bs.ToArray();
+        }
 
         /// <inheritdoc />
         protected internal override PakbusMessage Decode(byte[] data)

@@ -2,17 +2,20 @@
 using System.Collections.Generic;
 using System.Linq;
 using Serilog;
+using UnitsNet;
+using UnitsNet.Units;
 
 namespace weatherd.datasources.pakbus
 {
     public class PakbusPacket
     {
         public const int MaxLength = 1112;
+        public const int SignatureLength = 2;
 
         public PakbusHeader Header { get; }
         public PakbusMessage Message { get; }
 
-        protected const byte PacketBoundary = 0xBD;
+        public const byte PacketBoundary = 0xBD;
 
         // A bit arbitrary, I chose to start transaction numbers at 127.  Sue me.
         private static uint _transactionNumber = 127;
@@ -28,6 +31,10 @@ namespace weatherd.datasources.pakbus
             Message = message;
         }
         
+        /// <summary>
+        /// Generates a new transaction number in a thread-safe context.
+        /// </summary>
+        /// <returns>The new transaction number.</returns>
         public static byte GenerateNewTransactionNumber()
         {
             lock (_locker)
@@ -39,22 +46,23 @@ namespace weatherd.datasources.pakbus
 
             return (byte) _transactionNumber;
         }
-
-        private byte[] EncodeFrame()
+        
+        private IEnumerable<byte> EncodeFrame()
         {
-            byte[] encodedHeader = Header.Encode();
+            byte[] encodedHeader  = Header.Encode();
             byte[] encodedMessage = Message.Encode();
 
-            byte[] encodedPacket = new byte[encodedHeader.Length + encodedMessage.Length];
-            Array.Copy(encodedHeader, 0, encodedPacket, 0, encodedHeader.Length);
-            Array.Copy(encodedMessage, 0, encodedPacket, encodedHeader.Length, encodedMessage.Length);
-
-            byte[] signature = PakbusUtilities.CalculateSignatureNullifier(PakbusUtilities.ComputeSignature(encodedPacket, encodedPacket.Length));
-            Array.Resize(ref encodedPacket, encodedPacket.Length + signature.Length);
+            byte[] buffer = new byte[encodedHeader.Length + encodedMessage.Length + SignatureLength];
             
-            Array.Copy(signature, 0, encodedPacket, encodedPacket.Length - signature.Length, signature.Length);
+            Buffer.BlockCopy(encodedHeader,  0, buffer, 0, encodedHeader.Length);
+            Buffer.BlockCopy(encodedMessage, 0, buffer, encodedHeader.Length, encodedMessage.Length);
 
-            return encodedPacket;
+            ushort signature = PakbusUtilities.ComputeSignature(buffer, encodedHeader.Length + encodedMessage.Length);
+            byte[] signatureNullifier = PakbusUtilities.CalculateSignatureNullifier(signature);
+            
+            Buffer.BlockCopy(signatureNullifier, 0, buffer, encodedHeader.Length + encodedMessage.Length, signatureNullifier.Length);
+
+            return buffer;
         }
 
         protected static IEnumerable<byte> Quote(IEnumerable<byte> data)
@@ -99,7 +107,7 @@ namespace weatherd.datasources.pakbus
             }
         }
 
-        public virtual byte[] Encode()
+        public virtual IEnumerable<byte> Encode()
         {
             byte[] frame = Quote(EncodeFrame()).ToArray();
             byte[] compositePacket = new byte[2 + frame.Length];

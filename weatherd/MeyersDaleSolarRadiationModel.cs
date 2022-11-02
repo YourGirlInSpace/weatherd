@@ -84,8 +84,8 @@ namespace weatherd
             double daysInYear = DateTime.IsLeapYear(time.Year) ? 366.0 : 365.0;
             double yearPercent = time.DayOfYear / daysInYear;
 
-            int indexLow = (int)Floor(yearPercent * 4);
-            int indexHigh = (int)Ceiling(yearPercent * 4);
+            int indexLow = (int)Floor(yearPercent * 4)-1;
+            int indexHigh = (int)Ceiling(yearPercent * 4)-1;
             double percentIn = yearPercent * 4 - indexLow;
 
             return Utilities.Lerp(lambdaArgs[indexLow], lambdaArgs[indexHigh], percentIn);

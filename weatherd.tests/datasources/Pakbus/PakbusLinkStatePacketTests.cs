@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System.Linq;
+using FluentAssertions;
 using weatherd.datasources.pakbus;
 using Xunit;
 
@@ -14,7 +15,7 @@ namespace weatherd.tests.datasources.Pakbus
             PakbusLinkStatePacket packet = PakbusLinkStatePacket.FromState(4092, 1, PakbusLinkState.Ring);
 
             // Act
-            byte[] data = packet.Encode();
+            byte[] data = packet.Encode().ToArray();
 
             // Assert
             data.Should().Equal(expectedSequence);

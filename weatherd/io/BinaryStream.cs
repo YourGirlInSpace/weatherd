@@ -412,7 +412,7 @@ namespace weatherd.io
             if (MustReverse(endianness))
                 Array.Reverse(buffer, start, count);
 
-            BaseStream.Write(_buffer, start, count);
+            BaseStream.Write(buffer, start, count);
         }
 
         [SecuritySafeCritical] // auto-generated
