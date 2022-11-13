@@ -53,7 +53,7 @@ namespace weatherd.datasources.pakbus.Messages.BMP5
                     // Success, ignore
                     break;
                 default:
-                    Log.Information("[Pakbus] Collection error: error code {errCode:X}", responseCode);
+                    Log.Information("[Pakbus] Collection error: error code {ErrorCode:X}", responseCode);
                     return null;
             }
 
@@ -64,11 +64,11 @@ namespace weatherd.datasources.pakbus.Messages.BMP5
 
             if (isOffset)
             {
-                uint byteOffset = bs.ReadUInt32();
+                // Ignore
+                //uint byteOffset = bs.ReadUInt32();
             } else
             {
                 bs.Seek(-1, SeekOrigin.Current);
-                int numRecords = bs.ReadUInt16();
 
                 // Skip the time field
                 NSec nsec = bs.ReadUSec();

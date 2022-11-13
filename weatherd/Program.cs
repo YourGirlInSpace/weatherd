@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using weatherd.datasources;
 using weatherd.datasources.pakbus;
+using weatherd.datasources.Vaisala;
 using weatherd.io;
 using weatherd.services;
 #if DEBUG
@@ -36,25 +37,26 @@ namespace weatherd
 
             var timestreamService = serviceProvider.GetRequiredService<IWeatherTimestreamService>();
             IAsyncWeatherDataSource dataSource = GetConfiguredDataSource(serviceProvider);
+            IVaisalaDataSource vDataSource = serviceProvider.GetRequiredService<IVaisalaDataSource>();
 
-            if (!await timestreamService.Initialize(dataSource))
+            if (!await timestreamService.Initialize(dataSource, vDataSource))
             {
-                Log.Fatal("Failed to initialize Timestream service.");
+                Log.Fatal("Failed to initialize Timestream service");
                 return;
             }
 
             AutoResetEvent endSignaller = new AutoResetEvent(false);
             if (!await timestreamService.Start(endSignaller))
             {
-                Log.Fatal("Failed to start Timestream service.");
+                Log.Fatal("Failed to start Timestream service");
                 return;
             }
             
             // Wait for the timestream service to report that it is finished.
             endSignaller.WaitOne();
 
-            Log.Information("weatherd is now exiting.");
-            Log.Verbose("Thank you for participating in this Aperture Science computer-aided enrichment activity.");
+            Log.Information("weatherd is now exiting");
+            Log.Verbose("Thank you for participating in this Aperture Science computer-aided enrichment activity");
         }
 
         private static IServiceProvider ConfigureServices(IEnumerable<string> args)
@@ -67,6 +69,7 @@ namespace weatherd
             services.AddTransient<ITestDataSource, TestDataSource>();
 #endif
             services.AddTransient<IPakbusDataSource, PakbusDataSource>();
+            services.AddTransient<IVaisalaDataSource, PWD12DataSource>();
 
             Parser.Default.ParseArguments<CommandLineOptions>(args)
                   .WithParsed(o =>
@@ -89,11 +92,11 @@ namespace weatherd
 
             if (!Enum.TryParse(Configuration.GetValue("DataSource", "Test"), out DataSourceType dataSourceType))
             {
-                Log.Fatal("Could not determine data source type to load.");
+                Log.Fatal("Could not determine data source type to load");
                 return null;
             }
             
-            Log.Information("Loading the {dataSourceType} data source!", dataSourceType);
+            Log.Information("Loading the {DataSourceType} data source!", dataSourceType);
 
             try
             {
@@ -110,7 +113,7 @@ namespace weatherd
                 };
             } catch (Exception ex)
             {
-                Log.Fatal(ex, "Could not configure data source.");
+                Log.Fatal(ex, "Could not configure data source");
                 return null;
             }
         }
@@ -142,7 +145,7 @@ namespace weatherd
                 loggerConfig = loggerConfig.WriteTo.AWSSeriLog(Configuration);
 
             Log.Logger = loggerConfig.CreateLogger();
-            Log.Verbose("Logging system initialized.");
+            Log.Verbose("Logging system initialized");
         }
     }
 }

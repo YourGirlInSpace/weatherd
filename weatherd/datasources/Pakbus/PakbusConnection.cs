@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO.Ports;
 using System.Linq;
 using System.Threading;
@@ -81,7 +82,7 @@ namespace weatherd.datasources.pakbus
             if (string.IsNullOrEmpty(comPort))
                 throw new ArgumentException("Value cannot be null or empty.", nameof(comPort));
 
-            Log.Information("Opening port {comPort} ({baud} 8N1, RTS, DTR, No handshake)", comPort, baud);
+            Log.Information("Opening port {ComPort} ({Baud} 8N1, RTS, DTR, No handshake)", comPort, baud);
             if (_usingTestSerialInterface)
                 return _port.IsOpen;
 
@@ -101,7 +102,7 @@ namespace weatherd.datasources.pakbus
                 _port.Open();
             } catch (Exception ex)
             {
-                Log.Fatal(ex, "Failed to open {comPort}", comPort);
+                Log.Fatal(ex, "Failed to open {ComPort}", comPort);
                 return false;
             }
 
@@ -116,7 +117,7 @@ namespace weatherd.datasources.pakbus
 
             if (!await Retry.DoAsync(InitiateConnection))
             {
-                Log.Verbose("{function}: InitiateConnection failed all retries", nameof(Connect));
+                Log.Verbose("{Function}: InitiateConnection failed all retries", nameof(Connect));
                 return false;
             }
 
@@ -125,7 +126,7 @@ namespace weatherd.datasources.pakbus
 
             if (!await Retry.DoAsync(UpdateTableDefinitions))
             {
-                Log.Verbose("{function}: UpdateTableDefinitions failed all retries", nameof(Connect));
+                Log.Verbose("{Function}: UpdateTableDefinitions failed all retries", nameof(Connect));
                 return false;
             }
 
@@ -176,7 +177,7 @@ namespace weatherd.datasources.pakbus
                                                          XTDTableDefinition.Current["Inlocs"]);
                 } catch (Exception ex)
                 {
-                    Log.Error(ex, "Failed to download data.");
+                    Log.Error(ex, "Failed to download data");
                     return false;
                 }
 
@@ -210,7 +211,7 @@ namespace weatherd.datasources.pakbus
                 return true;
 
             Log.Error("Failed to start Pakbus data source");
-            Log.Verbose("{function}: tableDef is null", nameof(UpdateTableDefinitions));
+            Log.Verbose("{Function}: tableDef is null", nameof(UpdateTableDefinitions));
             return false;
         }
 
@@ -223,13 +224,13 @@ namespace weatherd.datasources.pakbus
 
             TimeSpan deviation = DateTime.UtcNow - r.Time.ToTime();
             Log.Information(
-                "Datalogger clock is {time}, which differs from server time by {deviation} seconds",
+                "Datalogger clock is {Time}, which differs from server time by {Deviation} seconds",
                 r.Time.ToTime(), deviation.TotalSeconds);
             if (deviation <= TimeSpan.FromMilliseconds(MaxDataloggerTimeDeviation) ||
                 await SetClock(LocalNodeID, RemoteNodeID, DateTime.UtcNow))
                 return true;
 
-            Log.Warning("Could not set the datalogger's clock.");
+            Log.Warning("Could not set the datalogger's clock");
             return false;
         }
 
@@ -249,7 +250,7 @@ namespace weatherd.datasources.pakbus
             if (linkStateResponse is null)
             {
                 Log.Error("Failed to start Pakbus data source");
-                Log.Verbose("{function}: linkStateResponse is null", nameof(InitiateConnection));
+                Log.Verbose("{Function}: linkStateResponse is null", nameof(InitiateConnection));
                 return false;
             }
 
@@ -259,7 +260,7 @@ namespace weatherd.datasources.pakbus
             if (helloResponse is null)
             {
                 Log.Error("Failed to start Pakbus data source");
-                Log.Verbose("{function}: helloResponse is null", nameof(InitiateConnection));
+                Log.Verbose("{Function}: helloResponse is null", nameof(InitiateConnection));
                 return false;
             }
 
@@ -272,28 +273,32 @@ namespace weatherd.datasources.pakbus
             try
             {
                 if (packet is PakbusLinkStatePacket)
-                    Log.Debug("[Pakbus {txrx}] Link State: {linkStateCode:X} {linkState} from {srcAddr}", "TX",
-                              (byte)packet.Header.LinkState, packet.Header.LinkState,
-                              packet.Header.SourcePhysicalAddress);
+                    Log.Debug("[Pakbus {TxRx}] Link State: {LinkStateCode:X} {LinkState} from {SrcAddr}", "TX",
+                              ((byte)packet.Header.LinkState).ToString(CultureInfo.CurrentCulture),
+                              packet.Header.LinkState.ToString(),
+                              packet.Header.SourcePhysicalAddress.ToString(CultureInfo.CurrentCulture));
                 else
                     Log.Debug(
-                        "[Pakbus {txrx}] {msgType} [{msgTypeByte:X}] (size={msgSize}, tx={transNum}) from {sourceNode} to {destNode}",
+                        "[Pakbus {TxRx}] {MsgType} [{MsgTypeByte:X}] (size={MsgSize}, tx={TransNum}) from {SourceNode} to {DestNode}",
                         "TX",
-                        packet.Message.MessageType, (byte)packet.Message.MessageType & 0xFF, packet.Message.Size,
-                        packet.Message.TransactionNumber,
-                        packet.Header.SourceNodeID, packet.Header.DestinationNodeID);
+                        packet.Message.MessageType,
+                        ((byte)packet.Message.MessageType & 0xFF).ToString(CultureInfo.CurrentCulture),
+                        packet.Message.Size.ToString(CultureInfo.CurrentCulture),
+                        packet.Message.TransactionNumber.ToString(CultureInfo.CurrentCulture),
+                        packet.Header.SourceNodeID.ToString(CultureInfo.CurrentCulture),
+                        packet.Header.DestinationNodeID.ToString(CultureInfo.CurrentCulture));
 
                 IEnumerable<byte> compiled = packet.Encode();
                 Send(compiled.ToArray());
             } catch (Exception ex)
             {
-                Log.Error(ex, "Failed to send Pakbus data packet.");
+                Log.Error(ex, "Failed to send Pakbus data packet");
             }
         }
 
         internal void Send(byte[] data)
         {
-            Log.Verbose("Sending {data}", BitConverter.ToString(data));
+            Log.Verbose("Sending {Data}", BitConverter.ToString(data));
             _port.Write(data, 0, data.Length);
             _port.Flush();
         }
@@ -305,7 +310,7 @@ namespace weatherd.datasources.pakbus
                 try
                 {
                     byte[] buffer = new byte[PakbusPacket.MaxLength];
-                    Log.Verbose("Waiting for response on transaction ID {transId}", transactionId);
+                    Log.Verbose("Waiting for response on transaction ID {TransId}", transactionId);
                     while (true)
                     {
                         if (_port.ReadByte() != 0xBD)
@@ -333,7 +338,7 @@ namespace weatherd.datasources.pakbus
                         if (n == buffer.Length)
                             continue; // malformed: too long
 
-                        Log.Verbose("Received {data}", BitConverter.ToString(buffer, 0, n));
+                        Log.Verbose("Received {Data}", BitConverter.ToString(buffer, 0, n));
 
                         // We now have a packet!  Try to decode it
                         try
@@ -368,15 +373,15 @@ namespace weatherd.datasources.pakbus
         {
             DateTime currentTime = DateTime.UtcNow;
             _lastClockSetTime = currentTime;
-            Log.Information("Setting clock to {time}", currentTime);
+            Log.Information("Setting clock to {Time}", currentTime);
             PakbusXTDClockResponse resp = await SetTimeTransaction(from, to, time);
             if (resp.ResponseCode != PakbusXTDResponseCode.ClockChanged)
             {
-                Log.Warning("Could not set clock:  Response code was {respCode}", resp.ResponseCode);
+                Log.Warning("Could not set clock:  Response code was {RespCode}", resp.ResponseCode);
                 return false;
             }
 
-            Log.Verbose("Successfully set clock to {time}:  {respCode}", currentTime, resp.ResponseCode);
+            Log.Verbose("Successfully set clock to {Time}:  {RespCode}", currentTime, resp.ResponseCode);
             return true;
         }
 
@@ -400,11 +405,11 @@ namespace weatherd.datasources.pakbus
                     return linkStatePacket;
                 }
 
-                Log.Error("Failed to establish link with datalogger.");
+                Log.Error("Failed to establish link with datalogger");
                 return null;
             } catch (Exception ex)
             {
-                Log.Error(ex, "Failed to establish link with datalogger.");
+                Log.Error(ex, "Failed to establish link with datalogger");
                 return null;
             }
         }
@@ -434,7 +439,7 @@ namespace weatherd.datasources.pakbus
                 return helloResponse;
             } catch (Exception ex)
             {
-                Log.Error(ex, "Failed to send hello transaction.");
+                Log.Error(ex, "Failed to send hello transaction");
                 return null;
             }
         }
@@ -460,7 +465,7 @@ namespace weatherd.datasources.pakbus
                 return clockResponse;
             } catch (Exception ex)
             {
-                Log.Error(ex, "Failed to send clock transaction.");
+                Log.Error(ex, "Failed to send clock transaction");
                 return null;
             }
         }
@@ -486,7 +491,7 @@ namespace weatherd.datasources.pakbus
                 return clockResponse;
             } catch (Exception ex)
             {
-                Log.Error(ex, "Failed to send clock transaction.");
+                Log.Error(ex, "Failed to send clock transaction");
                 return null;
             }
         }
@@ -528,7 +533,7 @@ namespace weatherd.datasources.pakbus
                 return tableDef;
             } catch (Exception ex)
             {
-                Log.Error(ex, "Failed to download XTD table definitions.");
+                Log.Error(ex, "Failed to download XTD table definitions");
                 return null;
             }
         }
@@ -570,6 +575,6 @@ namespace weatherd.datasources.pakbus
         private DateTime _lastPacketTime;
         private int _lastRecordNumber;
         private ISerialInterface _port;
-        internal bool _usingTestSerialInterface;
+        internal readonly bool _usingTestSerialInterface;
     }
 }

@@ -1,5 +1,6 @@
 ﻿#if DEBUG
 using System;
+using System.Globalization;
 using System.Threading.Tasks;
 using System.Timers;
 using Microsoft.Extensions.Configuration;
@@ -86,32 +87,32 @@ namespace weatherd.datasources.testdatasource
             _meyersDaleSolarRadModel = new MeyersDaleSolarRadiationModel(latitude, longitude);
 
             Log.Information(
-                "{dataSource} diurnal temperature variation simulation parameters:  Min={minTemp}°C, Max={maxTemp}°C, Period={period} hours, Trough={lowPoint}, Deviation={deviation}",
+                "{DataSource} diurnal temperature variation simulation parameters:  Min={MinTemp}°C, Max={MaxTemp}°C, Period={Period} hours, Trough={LowPoint}, Deviation={Deviation}",
                 Name,
-                DiurnalTemperature.Minimum,
-                DiurnalTemperature.Maximum,
-                DiurnalTemperature.Period,
-                DiurnalTemperature.Trough,
-                DiurnalTemperature.Deviation);
+                DiurnalTemperature.Minimum.ToString(CultureInfo.CurrentCulture),
+                DiurnalTemperature.Maximum.ToString(CultureInfo.CurrentCulture),
+                DiurnalTemperature.Period.ToString(CultureInfo.CurrentCulture),
+                DiurnalTemperature.Trough.ToString(CultureInfo.CurrentCulture),
+                DiurnalTemperature.Deviation.ToString(CultureInfo.CurrentCulture));
             Log.Information(
-                "{dataSource} diurnal dewpoint variation simulation parameters:  Min={minDewpoint}°C, Max={maxDewpoint}°C, Period={period} hours, Trough={lowPoint}, Deviation={deviation}",
+                "{DataSource} diurnal dewpoint variation simulation parameters:  Min={MinDewpoint}°C, Max={MaxDewpoint}°C, Period={Period} hours, Trough={LowPoint}, Deviation={Deviation}",
                 Name,
-                DiurnalDewpoint.Minimum,
-                DiurnalDewpoint.Maximum,
-                DiurnalDewpoint.Period,
-                DiurnalDewpoint.Trough,
-                DiurnalDewpoint.Deviation);
+                DiurnalDewpoint.Minimum.ToString(CultureInfo.CurrentCulture),
+                DiurnalDewpoint.Maximum.ToString(CultureInfo.CurrentCulture),
+                DiurnalDewpoint.Period.ToString(CultureInfo.CurrentCulture),
+                DiurnalDewpoint.Trough.ToString(CultureInfo.CurrentCulture),
+                DiurnalDewpoint.Deviation.ToString(CultureInfo.CurrentCulture));
             Log.Information(
-                "{dataSource} diurnal pressure variation simulation parameters:  Min={minPressure} hPa, Max={maxPressure} hPa, Period={period} hours, Trough={lowPoint}, Deviation={deviation}",
+                "{DataSource} diurnal pressure variation simulation parameters:  Min={MinPressure} hPa, Max={MaxPressure} hPa, Period={Period} hours, Trough={LowPoint}, Deviation={Deviation}",
                 Name,
-                DiurnalPressure.Minimum,
-                DiurnalPressure.Maximum,
-                DiurnalPressure.Period,
-                DiurnalPressure.Trough,
-                DiurnalPressure.Deviation);
+                DiurnalPressure.Minimum.ToString(CultureInfo.CurrentCulture),
+                DiurnalPressure.Maximum.ToString(CultureInfo.CurrentCulture),
+                DiurnalPressure.Period.ToString(CultureInfo.CurrentCulture),
+                DiurnalPressure.Trough.ToString(CultureInfo.CurrentCulture),
+                DiurnalPressure.Deviation.ToString(CultureInfo.CurrentCulture));
 
             Log.Information(
-                "{dataSource} initialized with polling interval of {pollingInterval} seconds and sample interval of {sampleInterval} seconds",
+                "{DataSource} initialized with polling interval of {PollingInterval} seconds and sample interval of {SampleInterval} seconds",
                 Name,
                 PollingInterval,
                 sampleInterval);
@@ -125,14 +126,14 @@ namespace weatherd.datasources.testdatasource
         {
             if (!Enabled)
             {
-                Log.Information("{dataSource} could not start because the data source is disabled in configuration.",
+                Log.Information("{DataSource} could not start because the data source is disabled in configuration",
                                 Name);
                 return false;
             }
 
             if (!Initialized)
             {
-                Log.Error("Failed to start {dataSource}: Initialize not called before Start!", Name);
+                Log.Error("Failed to start {DataSource}: Initialize not called before Start!", Name);
                 return false;
             }
 
@@ -140,11 +141,11 @@ namespace weatherd.datasources.testdatasource
             timer.Elapsed += (_, _) => Sample();
             timer.Start();
 
-            Log.Verbose("{dataSource} timer enabled: {timerEnabled}", Name, timer.Enabled);
+            Log.Verbose("{DataSource} timer enabled: {TimerEnabled}", Name, timer.Enabled);
             if (timer.Enabled)
-                Log.Information("{dataSource} started!", Name);
+                Log.Information("{DataSource} started!", Name);
             else
-                Log.Warning("{dataSource} failed to start: timer could not be enabled.", Name);
+                Log.Warning("{DataSource} failed to start: timer could not be enabled", Name);
 
             Running = timer.Enabled;
             return Running;

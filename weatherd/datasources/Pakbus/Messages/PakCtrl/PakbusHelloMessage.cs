@@ -40,7 +40,7 @@ namespace weatherd.datasources.pakbus.Messages.PakCtrl
             IsRouter = bs.ReadByte();
             HopMetric = bs.ReadByte();
 
-            Log.Verbose("[Pakbus] Hello?  IsRouter={isRouter:X}, HopMetric={hopMetric:X}", IsRouter, HopMetric);
+            Log.Verbose("[Pakbus] Hello?  IsRouter={IsRouter:X}, HopMetric={HopMetric:X}", IsRouter, HopMetric);
 
             return this;
         }

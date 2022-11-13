@@ -51,7 +51,8 @@ namespace weatherd
             double tD = 2 * PI * (Floor(julianDay) - 1) / 365.0;
 
             // Solar declination angle (radians) [Spencer, 1971]
-            double declination = 0.006918 - 0.399912 * Cos(tD) + 0.070257 * Sin(tD) -
+            double declination = 0.006918 - 
+                                 0.399912 * Cos(tD)     + 0.070257 * Sin(tD) -
                                  0.006758 * Cos(2 * tD) + 0.000907 * Sin(2 * tD) -
                                  0.002697 * Cos(3 * tD) + 0.001480 * Sin(3 * tD);
 

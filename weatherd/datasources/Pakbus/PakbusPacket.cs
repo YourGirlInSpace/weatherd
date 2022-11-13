@@ -42,7 +42,7 @@ namespace weatherd.datasources.pakbus
                 _transactionNumber++;
                 _transactionNumber &= 0xFF;
             }
-            Log.Verbose("Generated transaction ID {transId}", _transactionNumber);
+            Log.Verbose("Generated transaction ID {TransId}", _transactionNumber);
 
             return (byte) _transactionNumber;
         }
@@ -161,7 +161,7 @@ namespace weatherd.datasources.pakbus
             bool isTransmit = header.SourcePhysicalAddress == 4092;
 
             Log.Debug(
-                "[Pakbus {txrx}] {msgType} [{msgTypeByte:X}] (tx={transNum}) from {sourceNode} to {destNode}",
+                "[Pakbus {TxRx}] {MsgType} [{MsgTypeByte:X}] (tx={TransNum}) from {SourceNode} to {DestNode}",
                 isTransmit ? "TX" : "RX",
                 message.MessageType, (byte)message.MessageType & 0xFF, message.TransactionNumber,
                 header.SourceNodeID, header.DestinationNodeID);

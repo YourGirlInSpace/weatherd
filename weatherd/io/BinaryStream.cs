@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -16,6 +17,7 @@ namespace weatherd.io
     ///     Provides an interface to read or write from a stream
     ///     with support for various byte orders.
     /// </summary>
+    [SuppressMessage("ReSharper", "MemberCanBeProtected.Global")]
     public class BinaryStream : IDisposable
     {
         private const int MinimumBufferSize = 16;
@@ -90,8 +92,8 @@ namespace weatherd.io
         public virtual void Seek(long offset, SeekOrigin origin) => BaseStream.Seek(offset, origin);
 
         protected static bool MustReverse(Endianness endianness) =>
-            endianness == Endianness.Little && !BitConverter.IsLittleEndian ||
-            endianness == Endianness.Big && BitConverter.IsLittleEndian;
+            (endianness == Endianness.Little && !BitConverter.IsLittleEndian) ||
+            (endianness == Endianness.Big && BitConverter.IsLittleEndian);
 
         public byte[] ToArray()
         {
@@ -107,7 +109,7 @@ namespace weatherd.io
             return b;
         }
 
-        public T Read<T>() where T : struct
+        protected T Read<T>() where T : struct
             => Read<T>(_defaultEndianness);
 
         public T Read<T>(Endianness endianness) where T : struct

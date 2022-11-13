@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.Serialization;
 using Microsoft.Extensions.Configuration;
 
 namespace weatherd
@@ -156,7 +159,7 @@ namespace weatherd
         }
 
         public static int GetHexVal(char hex) {
-            int val = (int)hex;
+            int val = hex;
             //For uppercase A-F letters:
             //return val - (val < 58 ? 48 : 55);
             //For lowercase a-f letters:
@@ -165,20 +168,15 @@ namespace weatherd
             return val - (val < 58 ? 48 : (val < 97 ? 55 : 87));
         }
 
-        public static unsafe float IntBitsToFloat(uint bits)
+        public static string GetEnumMemberValue<T>(this T value)
+            where T : Enum
         {
-            // This is "almost" IEEE standard.  There's one less bit for exponent and one more for mantissa.
-            // Why?  Hell if I know.
-            int sign = bits >> 31 == 0 ? 1 : -1;
-
-            bool expNegative = (bits & 0x40000000) == 0;
-            int exponent = (sbyte)((bits & 0x3F000000) >> 24);
-            exponent *= expNegative ? -1 : 1;
-            uint mantissa = bits & 0xFFFFFF;
-
-            float fractional = mantissa / 16777216f;
-            
-            return (float) (sign * fractional * Math.Pow(2, exponent));
+            return typeof(T)
+                   .GetTypeInfo()
+                   .DeclaredMembers
+                   .SingleOrDefault(x => x.Name == value.ToString())
+                   ?.GetCustomAttribute<EnumMemberAttribute>(false)
+                   ?.Value;
         }
     }
 }

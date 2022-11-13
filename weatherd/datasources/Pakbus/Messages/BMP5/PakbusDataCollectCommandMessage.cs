@@ -1,4 +1,5 @@
-﻿using Serilog;
+﻿using System.Globalization;
+using Serilog;
 using weatherd.io;
 
 namespace weatherd.datasources.pakbus.Messages.BMP5
@@ -75,11 +76,11 @@ namespace weatherd.datasources.pakbus.Messages.BMP5
             ushort securityCode = bs.ReadUInt16();
 
             var collectMode = (PakbusCollectionMode)bs.ReadByte();
-            int msgLen = data.Length - 3;
 
             int tblNum = bs.ReadUInt16();
             int tblSig = bs.ReadUInt16();
 
+            // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
             switch (collectMode)
             {
                 case PakbusCollectionMode.GetDataFromRecord:
@@ -98,36 +99,48 @@ namespace weatherd.datasources.pakbus.Messages.BMP5
             {
                 case PakbusCollectionMode.GetDataRange:
                     Log.Verbose(
-                        "[Pakbus] Collect command:  Collect records between {p1} and {p2} on table {tblNum}.  Include {p1} but exclude {p2}",
-                        P1, P2, P1, P2, tblNum);
+                        "[Pakbus] Collect command:  Collect records between {P1} and {P2} inclusive on table {TableNumber}",
+                        P1.ToString(CultureInfo.CurrentCulture),
+                        P2.ToString(CultureInfo.CurrentCulture),
+                        tblNum.ToString(CultureInfo.CurrentCulture));
                     break;
                 case PakbusCollectionMode.GetLastRecord:
                     Log.Verbose(
-                        "[Pakbus] Collect command:  Collect last {p1} records on table {tblNum}",
-                        P1, tblNum);
+                        "[Pakbus] Collect command:  Collect last {P1} records on table {TableNumber}",
+                        P1.ToString(CultureInfo.CurrentCulture),
+                        tblNum.ToString(CultureInfo.CurrentCulture));
                     break;
                 case PakbusCollectionMode.GetPartialRecord:
                     Log.Verbose(
-                        "[Pakbus] Collect command:  Collect a partial record at record number {p1} and byte offset {p2} on table {tblNum}",
-                        P1, P2, tblNum);
+                        "[Pakbus] Collect command:  Collect a partial record at record number {P1} and byte offset {P2} on table {TableNumber}",
+                        P1.ToString(CultureInfo.CurrentCulture),
+                        P2.ToString(CultureInfo.CurrentCulture),
+                        tblNum.ToString(CultureInfo.CurrentCulture));
                     break;
                 case PakbusCollectionMode.GetAllData:
                     Log.Verbose(
-                        "[Pakbus] Collect command:  Collect all data stored on the logger on table {tblNum}", tblNum);
+                        "[Pakbus] Collect command:  Collect all data stored on the logger on table {TableNumber}",
+                        tblNum.ToString(CultureInfo.CurrentCulture));
                     break;
                 case PakbusCollectionMode.GetDataFromRecord:
                     Log.Verbose(
-                        "[Pakbus] Collect command:  Collect from {p1} to the latest record on table {tblNum}", P1,
-                        tblNum);
+                        "[Pakbus] Collect command:  Collect from {P1} to the latest record on table {TableNumber}",
+                        P1.ToString(CultureInfo.CurrentCulture),
+                        tblNum.ToString(CultureInfo.CurrentCulture));
                     break;
                 case PakbusCollectionMode.GetRecordsBetweenTimes:
                     Log.Verbose(
-                        "[Pakbus] Collect command:  Collect the time swath described by {p1} and {p2} on table {tblNum}",
-                        P1, P2, tblNum);
+                        "[Pakbus] Collect command:  Collect the time swath described by {P1} and {P2} on table {TableNumber}",
+                        P1.ToString(CultureInfo.CurrentCulture),
+                        P2.ToString(CultureInfo.CurrentCulture),
+                        tblNum.ToString(CultureInfo.CurrentCulture));
                     break;
+                case PakbusCollectionMode.InquireRecordInfo:
+                case PakbusCollectionMode.StoreData:
                 default:
                     Log.Verbose(
-                        "[Pakbus] Collect command:  Collect all data stored on the logger on table {tblNum}", tblNum);
+                        "[Pakbus] Collect command:  Collect all data stored on the logger on table {TableNumber}",
+                        tblNum.ToString(CultureInfo.CurrentCulture));
                     break;
             }
 

@@ -40,7 +40,7 @@ namespace weatherd.datasources.pakbus.Messages.BMP5
                 //case PakbusMessageType.BMP5_PleaseWait:
                 //    return new PakbusBMP5UnknownMessage().WithData(msgType, transNum).Decode(bytes);
                 default:
-                    Log.Warning("[Pakbus] Unknown {protocol} message type: {msgType:X}", protocol, msgType);
+                    Log.Warning("[Pakbus] Unknown {Protocol} message type: {MessageType:X}", protocol, msgType);
                     return null;
             }
         }

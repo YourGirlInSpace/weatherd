@@ -28,6 +28,13 @@
     "TargetNode": 1,
     "SecurityCode": 0
   },
+  "PWD12DataSource": {
+    "Port": {
+      "Name": "COM9",
+      "Baud": 9600,
+      "SensorID": "7"
+    } 
+  },
   "TestDataSource": {
     "Enabled": true,
     "PollingInterval": 1,

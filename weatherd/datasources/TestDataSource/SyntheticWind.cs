@@ -1,5 +1,6 @@
 ﻿#if DEBUG
 using System;
+using System.Globalization;
 using Microsoft.Extensions.Configuration;
 using Serilog;
 
@@ -40,8 +41,11 @@ namespace weatherd.datasources.testdatasource
             TimeStep = timeStep;
 
             Log.Information(
-                "Synthetic wind model parameters:  Weibull Shape Factor={weibull}, Autocorrelation Factor={autoCorr}, Diurnal strength parameter={diurnal}, Mean wind speed={meanWind}",
-                WeibullShapeFactor, OneHourAutocorrelationFactor, DiurnalPatternStrength, MeanWindSpeed);
+                "Synthetic wind model parameters:  Weibull Shape Factor={Weibull}, Autocorrelation Factor={AutoCorr}, Diurnal strength parameter={Diurnal}, Mean wind speed={MeanWind}",
+                WeibullShapeFactor.ToString(CultureInfo.CurrentCulture),
+                OneHourAutocorrelationFactor.ToString(CultureInfo.CurrentCulture),
+                DiurnalPatternStrength.ToString(CultureInfo.CurrentCulture),
+                MeanWindSpeed.ToString(CultureInfo.CurrentCulture));
         }
 
         public SyntheticWind(IConfiguration config)
@@ -58,8 +62,11 @@ namespace weatherd.datasources.testdatasource
             TimeStep = (int)Utilities.TryGetConfigurationKey(config, "TimeStep");
 
             Log.Information(
-                "Synthetic wind model parameters:  Weibull Shape Factor={weibull}, Autocorrelation Factor={autoCorr}, Diurnal strength parameter={diurnal}, Mean wind speed={meanWind}",
-                WeibullShapeFactor, OneHourAutocorrelationFactor, DiurnalPatternStrength, MeanWindSpeed);
+                "Synthetic wind model parameters:  Weibull Shape Factor={Weibull}, Autocorrelation Factor={AutoCorr}, Diurnal strength parameter={Diurnal}, Mean wind speed={MeanWind}",
+                WeibullShapeFactor.ToString(CultureInfo.CurrentCulture),
+                OneHourAutocorrelationFactor.ToString(CultureInfo.CurrentCulture),
+                DiurnalPatternStrength.ToString(CultureInfo.CurrentCulture),
+                MeanWindSpeed.ToString(CultureInfo.CurrentCulture));
         }
 
         public float WindSpeed()

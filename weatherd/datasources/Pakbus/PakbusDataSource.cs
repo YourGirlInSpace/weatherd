@@ -76,7 +76,7 @@ namespace weatherd.datasources.pakbus
              */
 
             Running = false;
-            Log.Fatal("Unexpected termination of Pakbus connection.");
+            Log.Fatal("Unexpected termination of Pakbus connection");
         }
 
         private void DataCallback(PakbusResult data)

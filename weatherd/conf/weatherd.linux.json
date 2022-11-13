@@ -1,7 +1,7 @@
 ﻿{
   "DataSource": "Test",
   "Site": {
-    "Elevation": 113 
+    "Elevation": 113
   },
   "Logging": {
     "LogLevel": {
@@ -29,6 +29,12 @@
     "NodeID": 4092,
     "TargetNode": 1,
     "SecurityCode": 0
+  },
+  "PWD12DataSource": {
+    "Port": {
+      "Name": "/dev/ttyUSB1",
+      "Baud": 9600
+    }
   },
   "TestDataSource": {
     "Enabled": true,

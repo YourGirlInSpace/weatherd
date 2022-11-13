@@ -44,7 +44,7 @@ namespace weatherd.datasources.pakbus
 
     public class XTDTableDefinition
     {
-        private Dictionary<string, Table> _tables;
+        private readonly Dictionary<string, Table> _tables;
 
         public IReadOnlyList<Table> Tables => _tables.Values.ToList().AsReadOnly();
 
@@ -87,7 +87,7 @@ namespace weatherd.datasources.pakbus
             Debug.Assert(bs.ReadByte() == 0x0D);
             NSec time = bs.ReadUSec();
 
-            Log.Verbose("Table '{tableName}':", tableName);
+            Log.Verbose("Table '{TableName}':", tableName);
             List<Field> fields = new List<Field>();
 
             int i = 0;
@@ -110,7 +110,7 @@ namespace weatherd.datasources.pakbus
 
             ushort tblSig = PakbusUtilities.ComputeSignature(tblData, tblLen);
 
-            Log.Verbose("    Signature: {sig}", tblSig);
+            Log.Verbose("    Signature: {Sig}", tblSig);
 
             return new Table(index, tableName, tableSize, time, tblSig, fields.ToArray());
         }
@@ -133,7 +133,7 @@ namespace weatherd.datasources.pakbus
 
             bs.ReadByte(); // no idea what this signifies
             
-            Log.Verbose("    Field [{index}] '{fieldName}' ({fieldType})", index, fieldName, fieldType);
+            Log.Verbose("    Field [{Index}] '{FieldName}' ({FieldType})", index, fieldName, fieldType);
 
             return new Field(index, fieldType, fieldName);
         }

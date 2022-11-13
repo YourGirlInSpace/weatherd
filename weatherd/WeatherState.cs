@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using UnitsNet;
 using UnitsNet.Units;
 using static System.Math;
@@ -131,6 +132,11 @@ namespace weatherd
         public Length RainfallSinceMidnight { get; set; }
 
         /// <summary>
+        /// Total rainfall since midnight local time, in millimeters
+        /// </summary>
+        public Length SnowfallSinceMidnight { get; set; }
+
+        /// <summary>
         /// The total rainfall rate in mm/h
         /// </summary>
         public Speed InstantaneousRainRate { get; set; }
@@ -159,6 +165,21 @@ namespace weatherd
         /// Station enclosure temperature in °C
         /// </summary>
         public Temperature EnclosureTemperature { get; set; }
+
+        /// <summary>
+        /// The visibility in meters
+        /// </summary>
+        public Length Visibility { get; set; }
+
+        /// <summary>
+        /// The current precipitation/obscuration conditions
+        /// </summary>
+        public WeatherCode Weather { get; set; } = WeatherCode.Unknown;
+
+        /// <summary>
+        /// The precipitation water intensity in mm/h
+        /// </summary>
+        public Speed WaterIntensity { get; set; }
 
         /// <summary>
         /// Ambient station dewpoint in °C
@@ -423,5 +444,163 @@ namespace weatherd
         /// Underlying field for <see cref="Dewpoint"/>
         /// </summary>
         private Temperature _dewpoint = Temperature.Zero;
+
+        public string ToMETAR(string locationCode)
+        {
+            // The minimum information we need for a valid METAR is temperature and pressure.
+            if (Temperature == default && Dewpoint == default && Pressure == default)
+                return null;
+            
+            StringBuilder metarBuilder = new StringBuilder();
+
+            metarBuilder.Append(locationCode.ToUpperInvariant());
+            metarBuilder.Append(' ');
+
+            metarBuilder.Append(Time.ToUniversalTime().ToString("ddHHmm"));
+            metarBuilder.Append('Z');
+            metarBuilder.Append(' ');
+
+            if (WindSpeed != default && WindDirection != default)
+            {
+                metarBuilder.Append(WindDirection.Degrees.ToString("000"));
+                metarBuilder.Append(WindSpeed.Knots.ToString("#00"));
+
+                if (WindGust5Minute != default && WindGust5Minute.Knots - 3 > WindSpeed.Knots)
+                {
+                    metarBuilder.Append('G');
+                    metarBuilder.Append(WindGust5Minute.Knots.ToString("#00"));
+                }
+
+                metarBuilder.Append("KT");
+                metarBuilder.Append(' ');
+            }
+
+            if (Visibility != default)
+            {
+                double visMiles = Visibility.Miles;
+
+                switch (visMiles)
+                {
+                    case < 1/4f:
+                        metarBuilder.Append("M1/4SM ");
+                        break;
+                    case < 1/2f:
+                        metarBuilder.Append("1/2SM ");
+                        break;
+                    case < 3/4f:
+                        metarBuilder.Append("3/4SM ");
+                        break;
+                    case < 1f:
+                        metarBuilder.Append("1SM ");
+                        break;
+                }
+            }
+
+            if (Weather != WeatherCode.Unknown)
+            {
+                string? metarCode = Weather.GetEnumMemberValue();
+
+                if (!string.IsNullOrEmpty(metarCode))
+                {
+                    metarBuilder.Append(metarCode);
+                    metarBuilder.Append(' ');
+                }
+            }
+
+            if (Temperature != default && Dewpoint != default)
+            {
+                if (Temperature.DegreesCelsius < 0)
+                    metarBuilder.Append('M');
+                metarBuilder.Append(Abs(Floor(Temperature.DegreesCelsius)).ToString("00"));
+                metarBuilder.Append('/');
+                if (Dewpoint.DegreesCelsius < 0)
+                    metarBuilder.Append('M');
+                metarBuilder.Append(Abs(Floor(Dewpoint.DegreesCelsius)).ToString("00"));
+                metarBuilder.Append(' ');
+            }
+
+            if (SeaLevelPressure != default)
+            {
+                metarBuilder.Append('A');
+                metarBuilder.Append((SeaLevelPressure.InchesOfMercury * 100).ToString("0000"));
+                metarBuilder.Append(' ');
+            }
+
+            metarBuilder.Append("RMK AO2 ");
+
+            if (SeaLevelPressure != default)
+            {
+                metarBuilder.Append("SLP");
+
+                var adjustedSLP = (SeaLevelPressure.Hectopascals * 10) - 10000;
+                metarBuilder.Append(adjustedSLP.ToString("000"));
+                metarBuilder.Append(' ');
+            }
+
+            if (RainfallLastHour != default)
+            {
+                metarBuilder.Append('P');
+                metarBuilder.Append(Floor(RainfallLastHour.Inches * 100).ToString("0000"));
+                metarBuilder.Append(' ');
+            }
+            
+            if (Temperature != default && Dewpoint != default)
+            {
+                metarBuilder.Append('T');
+                metarBuilder.Append(Temperature.DegreesCelsius < 0 ? '1' : '0');
+                metarBuilder.Append(Abs(Floor(Temperature.DegreesCelsius*10)).ToString("000"));
+                
+                metarBuilder.Append(Dewpoint.DegreesCelsius < 0 ? '1' : '0');
+                metarBuilder.Append(Abs(Floor(Dewpoint.DegreesCelsius*10)).ToString("000"));
+                metarBuilder.Append(' ');
+            }
+
+            if (SnowfallSinceMidnight != default && SnowfallSinceMidnight.Inches > 1)
+            {
+                metarBuilder.Append("4/");
+                metarBuilder.Append($"{Round(SnowfallSinceMidnight.Inches):000}");
+                metarBuilder.Append(' ');
+            }
+
+            if (RainfallSinceMidnight != default && RainfallSinceMidnight.Inches > 0.01)
+            {
+                metarBuilder.Append('7');
+                metarBuilder.Append($"{Round(RainfallSinceMidnight.Inches * 100):0000}");
+                metarBuilder.Append(' ');
+            }
+
+            return metarBuilder.ToString().Trim() + '=';
+        }
+
+        public static WeatherState Merge(WeatherState a, WeatherState b)
+        {
+            V AOrB<T, V>(T x, T y, Func<T, V> selector) => selector(x).Equals(default(V)) ? selector(y) : selector(x);
+            
+            return new WeatherState
+            {
+                Time = AOrB(a, b, x => x.Time),
+                Temperature = AOrB(a, b, x => x.Temperature),
+                Pressure = AOrB(a, b, x => x.Pressure),
+                Elevation = AOrB(a, b, x => x.Elevation),
+                WindSpeed = AOrB(a, b, x => x.WindSpeed),
+                WindDirection = AOrB(a, b, x => x.WindDirection),
+                Luminosity = AOrB(a, b, x => x.Luminosity),
+                RainfallLastHour = AOrB(a, b, x => x.RainfallLastHour),
+                RainfallLast24Hours = AOrB(a, b, x => x.RainfallLast24Hours),
+                RainfallSinceMidnight = AOrB(a, b, x => x.RainfallSinceMidnight),
+                SnowfallSinceMidnight = AOrB(a, b, x => x.SnowfallSinceMidnight),
+                InstantaneousRainRate = AOrB(a, b, x => x.InstantaneousRainRate),
+                WindGust5Minute = AOrB(a, b, x => x.WindGust5Minute),
+                WindGust30Minute = AOrB(a, b, x => x.WindGust30Minute),
+                WindGust1Hour = AOrB(a, b, x => x.WindGust1Hour),
+                BatteryVoltage = AOrB(a, b, x => x.BatteryVoltage),
+                EnclosureTemperature = AOrB(a, b, x => x.Temperature),
+                Visibility = AOrB(a, b, x => x.Visibility),
+                Weather = a.Weather == WeatherCode.Unknown ? b.Weather : a.Weather,
+                WaterIntensity = AOrB(a, b, x => x.WaterIntensity),
+                Dewpoint = AOrB(a, b, x => x.Dewpoint),
+                RelativeHumidity = AOrB(a, b, x => x.RelativeHumidity)
+            };
+        }
     }
 }

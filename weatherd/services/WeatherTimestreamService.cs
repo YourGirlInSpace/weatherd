@@ -20,14 +20,14 @@ namespace weatherd.services
     public interface IWeatherTimestreamService
     {
         bool IsRunning { get; }
-        Task<bool> Initialize(IAsyncWeatherDataSource dataSource);
+        Task<bool> Initialize(params IAsyncWeatherDataSource[] dataSource);
         Task<bool> Start(AutoResetEvent endSignaller);
         Task<bool> Stop();
     }
 
     public class WeatherTimestreamService : IWeatherTimestreamService
     {
-        private IAsyncWeatherDataSource _wxDataSource;
+        private IAsyncWeatherDataSource[] _wxDataSources;
         private WeatherState lastState;
         private readonly ITimestreamClient timestreamClient;
         private readonly bool _enableDataWrite = true;
@@ -49,17 +49,18 @@ namespace weatherd.services
         }
 
         /// <inheritdoc />
-        public bool IsRunning => _wxDataSource.Running;
+        public bool IsRunning => _wxDataSources.All(x => x.Running);
 
         /// <inheritdoc />
-        public async Task<bool> Initialize(IAsyncWeatherDataSource dataSource)
+        public async Task<bool> Initialize(params IAsyncWeatherDataSource[] dataSource)
         {
-            _wxDataSource = dataSource;
-            if (_wxDataSource.Initialized)
+            _wxDataSources = dataSource;
+            if (_wxDataSources.All(n => n.Initialized))
                 return true;
 
-            if (!await _wxDataSource.Initialize())
-                throw new InvalidOperationException("Could not initialize data source.");
+            foreach (IAsyncWeatherDataSource wxds in _wxDataSources)
+                if (!await wxds.Initialize())
+                    throw new InvalidOperationException("Could not initialize data source.");
 
             timestreamClient.Connect();
 
@@ -81,7 +82,7 @@ namespace weatherd.services
             if (createResp.HttpStatusCode == HttpStatusCode.OK)
                 return true;
 
-            Log.Fatal("Could not create Timestream table '{tableName}'.", "local");
+            Log.Fatal("Could not create Timestream table '{TableName}'", "local");
             return false;
 
         }
@@ -92,24 +93,34 @@ namespace weatherd.services
             _endSignaller = endSignaller;
             _endSignaller?.Reset();
 
-            if (!_wxDataSource.Running)
+            foreach (IAsyncWeatherDataSource wxds in _wxDataSources)
             {
-                if (!await _wxDataSource.Start())
-                    throw new InvalidOperationException("Could not start data source.");
-            }
+                if (!wxds.Running)
+                {
+                    if (!await wxds.Start())
+                        throw new InvalidOperationException("Could not start data source.");
+                }
 
-            _wxDataSource.SampleAvailable += WxDataSourceOnSampleAvailable;
+                wxds.SampleAvailable += WxDataSourceOnSampleAvailable;
+            }
 
             return true;
         }
 
         private async void WxDataSourceOnSampleAvailable(object sender, WeatherDataEventArgs e)
         {
-            WeatherState wxState = _wxDataSource.Conditions;
+            // Don't do anything until we have conditions on ALL data sources
+            if (_wxDataSources.Any(n => n.Conditions == null))
+                return;
+            
+            WeatherState wxState = _wxDataSources[0].Conditions;
+            
+            for (int i = 1; i < _wxDataSources.Length; i++)
+                wxState = WeatherState.Merge(wxState, _wxDataSources[i].Conditions);
 
             if (wxState is null)
             {
-                Log.Warning("Could not retrieve valid sample from data source.");
+                Log.Warning("Could not retrieve valid sample from data sources");
                 return;
             }
 
@@ -119,7 +130,7 @@ namespace weatherd.services
                 return;
             }
             
-            Log.Verbose("Sample:  T={temp}  Dp={dewpoint}  RH={relativeHumidity}  P={pressure} SLP={seaLevelPressure} L={irradiance}  Ws={windSpeed}  Wd={windDir}  Rain={rain}",
+            /*Log.Verbose("Sample:  T={Temp}  Dp={Dewpoint}  RH={RelativeHumidity}  P={Pressure} SLP={SeaLevelPressure} L={Irradiance}  Ws={WindSpeed}  Wd={WindDir}  Rain={Rain}  Visibility={Visibility}  Weather={Weather}",
                         wxState.Temperature.ToUnit(TemperatureUnit.DegreeFahrenheit),
                         wxState.Dewpoint.ToUnit(TemperatureUnit.DegreeFahrenheit),
                         wxState.RelativeHumidity,
@@ -128,7 +139,11 @@ namespace weatherd.services
                         wxState.Luminosity.ToUnit(IrradianceUnit.WattPerSquareMeter),
                         wxState.WindSpeed.ToUnit(SpeedUnit.MilePerHour),
                         wxState.WindDirection,
-                        wxState.RainfallLastHour.ToUnit(LengthUnit.Inch));
+                        wxState.RainfallLastHour.ToUnit(LengthUnit.Inch),
+                        wxState.Visibility.ToUnit(LengthUnit.Meter),
+                        wxState.Weather);*/
+            
+            Log.Verbose("{Metar}", wxState.ToMETAR("KPAX"));
 
             if (_enableDataWrite)
             {
@@ -224,12 +239,12 @@ namespace weatherd.services
                         throw new RecordIngestForbiddenException(
                             $"Failed to ingest Timestream records:  {response.HttpStatusCode} in request ID {response.ResponseMetadata.RequestId}!");
                     case HttpStatusCode.OK:
-                        Log.Information("Records ingested: {recordsIngest} in request ID {requestId}",
+                        Log.Information("Records ingested: {RecordsIngest} in request ID {RequestId}",
                                         response.RecordsIngested.Total, response.ResponseMetadata.RequestId);
                         break;
                     default:
                         Log.Warning(
-                            "Failed to ingest Timestream records.  Status code: {statusCode} in request ID {requestId}",
+                            "Failed to ingest Timestream records.  Status code: {StatusCode} in request ID {RequestId}",
                             response.HttpStatusCode, response.ResponseMetadata.RequestId);
                         break;
                 }
@@ -263,7 +278,9 @@ namespace weatherd.services
         /// <inheritdoc />
         public async Task<bool> Stop()
         {
-            await Retry.DoAsync(() => _wxDataSource.Stop(), TimeSpan.FromSeconds(1), 5);
+            foreach (IAsyncWeatherDataSource wxds in _wxDataSources)
+                await Retry.DoAsync(() => wxds.Stop(), TimeSpan.FromSeconds(1), 5);
+
             return _endSignaller?.Set() ?? true;
         }
     }

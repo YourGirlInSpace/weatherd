@@ -20,17 +20,17 @@ namespace weatherd
             _latitude = latitude;
             _longitude = longitude;
 
-            Log.Information("Meyers-Dale solar radition model parameters:  Lat={latitude}, Lon={longitude}",
+            Log.Information("Meyers-Dale solar radition model parameters:  Lat={Latitude}, Lon={Longitude}",
                             latitude, longitude);
         }
 
         public Irradiance CalculateSolarRadiation(DateTime now)
         {
             // Standard surface dewpoint in celsius
-            int Td = 59;
+            const int Td = 59;
             // Standard surface pressure in kPa
-            double p = 101.325;
-            double x = 0.935;
+            const double p = 101.325;
+            const double x = 0.935;
 
             double lambda = CalculateLambda(now, _latitude);
 
@@ -63,7 +63,7 @@ namespace weatherd
                                          0.000077 * (2 * theta).Sin()), IrradianceUnit.WattPerSquareMeter);
         }
 
-        private double CalculateLambda(DateTime time, Angle latitude)
+        private static double CalculateLambda(DateTime time, Angle latitude)
         {
             double[][] Lambdas =
             {
