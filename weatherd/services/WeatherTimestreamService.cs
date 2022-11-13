@@ -204,6 +204,18 @@ namespace weatherd.services
                                n => n.RainfallSinceMidnight,
                                n => n.Millimeters,
                                "RainSinceMidnight");
+            AddIfNotDuplicated(records, lastState, wxState,
+                               n => n.SnowfallSinceMidnight,
+                               n => n.Millimeters,
+                               "SnowSinceMidnight");
+            AddIfNotDuplicated(records, lastState, wxState,
+                               n => n.Visibility,
+                               n => n.Meters,
+                               "Visibility");
+            AddIfNotDuplicated(records, lastState, wxState,
+                               n => n.Weather,
+                               n => n.GetEnumMemberValue(),
+                               "Weather");
 
             if (records.Count == 0)
                 return;
@@ -255,23 +267,23 @@ namespace weatherd.services
             }
         }
 
-        private static void AddIfNotDuplicated<T>(ICollection<Record> list, WeatherState last, WeatherState current, Func<WeatherState, T> unitSelector, Func<T, double> valueSelector, string name)
+        private static void AddIfNotDuplicated<T, U>(ICollection<Record> list, WeatherState last, WeatherState current, Func<WeatherState, T> unitSelector, Func<T, U> valueSelector, string name, MeasureValueType mvt = null)
             where T : struct
         {
             T lastMeasurement = unitSelector(last);
             T currentMeasurement = unitSelector(current);
 
-            double lastValue = valueSelector(lastMeasurement);
-            double currentValue = valueSelector(currentMeasurement);
+            U lastValue = valueSelector(lastMeasurement);
+            U currentValue = valueSelector(currentMeasurement);
 
-            if (Math.Abs(lastValue - currentValue) < 1e-5)
+            if (lastValue.Equals(currentValue))
                 return;
             
             list.Add(new Record
             {
                 MeasureName = name,
-                MeasureValueType = MeasureValueType.DOUBLE,
-                MeasureValue = currentValue.ToString(CultureInfo.InvariantCulture)
+                MeasureValueType = mvt ?? MeasureValueType.DOUBLE,
+                MeasureValue = currentValue.ToString()
             });
         }
         
