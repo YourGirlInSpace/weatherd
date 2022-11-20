@@ -251,22 +251,7 @@ namespace weatherd.tests.datasources.Vaisala.Messages
         [Fact]
         public void VaisalaMessage_ShouldReturnStationStatus_WhenProvidedWithStatusMessage()
         {
-            string rawMessage = $@"{SOH}PW  7{STX}PWD STATUS
-VAISALA PWD12 V 2.05   2012-03-16 SN:M4151153 ID STRING: 7
-
-SIGNAL      1.08 OFFSET    148.21 DRIFT      0.54
-REC. BACKSCATTER      593  CHANGE    -63
-TR. BACKSCATTER      -1.4  CHANGE   -0.0
-LEDI    3.1  AMBL    -1.0
-VBB    12.4  P12     11.4  M12     -11.2
-TS     20.3  TB        19
-TDRD     18  DRD    *   0  DRY   *   0.0
-HOOD HEATERS OFF
-HARDWARE :
- OK
-WARNINGS :
- DRD ERROR
-{ETX}";
+            string rawMessage = $"{SOH}PW  7{STX}PWD STATUS\r\nVAISALA PWD12 V 2.05   2012-03-16 SN:M4151153 ID STRING: 7\r\n\r\nSIGNAL      1.08 OFFSET    148.21 DRIFT      0.54\r\n REC. BACKSCATTER      593  CHANGE    -63\r\n TR. BACKSCATTER      -1.4  CHANGE   -0.0\r\n LEDI    3.1  AMBL    -1.0\r\n VBB    12.4  P12     11.4  M12     -11.2\r\n TS     20.3  TB        19\r\n TDRD     18  DRD    *   0  DRY   *   0.0\r\n HOOD HEATERS OFF\r\n HARDWARE :\r\n OK\r\n WARNINGS :\r\n DRD ERROR\r\n{ETX}\r\n";
 
             var message = VaisalaMessage.Parse(rawMessage);
 
@@ -314,25 +299,7 @@ WARNINGS :
         [Fact]
         public void VaisalaMessage_ShouldReturnStationStatus_WhenProvidedWithStatusMessageWithExtendedInformation()
         {
-            string rawMessage = $@"{SOH}PW  7{STX}PWD STATUS
-VAISALA PWD12 V 2.05   2012-03-16 SN:M4151153 ID STRING: 7
-
-SIGNAL      1.08 OFFSET    148.21 DRIFT      0.54
-REC. BACKSCATTER      593  CHANGE    -63
-TR. BACKSCATTER      -1.4  CHANGE   -0.0
-LEDI    3.1  AMBL    -1.0
-VBB    12.4  P12     11.4  M12     -11.2
-TS     20.3  TB        19
-TDRD     18  DRD    *   0  DRY   *   0.0
-BL       29
-RELAYS  OFF OFF OFF
-
-HOOD HEATERS OFF
-HARDWARE :
- OK
-WARNINGS :
- DRD ERROR
-{ETX}";
+            string rawMessage = $"{SOH}PW  7{STX}PWD STATUS\r\nVAISALA PWD12 V 2.05   2012-03-16 SN:M4151153 ID STRING: 7\r\n\r\nSIGNAL      1.08 OFFSET    148.21 DRIFT      0.54\r\nREC. BACKSCATTER      593  CHANGE    -63\r\nTR. BACKSCATTER      -1.4  CHANGE   -0.0\r\nLEDI    3.1  AMBL    -1.0\r\nVBB    12.4  P12     11.4  M12     -11.2\r\nTS     20.3  TB        19\r\nTDRD     18  DRD    *   0  DRY   *   0.0\r\nBL       29\r\nRELAYS  OFF OFF OFF\r\n\r\nHOOD HEATERS OFF\r\nHARDWARE :\r\n OK\r\nWARNINGS :\r\n DRD ERROR\r\n{ETX}\r\n";
 
             var message = VaisalaMessage.Parse(rawMessage);
 
@@ -380,22 +347,7 @@ WARNINGS :
         [Fact]
         public void VaisalaMessage_ShouldReturnStationStatus_WhenProvidedWithStatusMessageWithExtendedInformation2()
         {
-            string rawMessage = $@"{SOH}PW  7{STX}PWD STATUS
-VAISALA PWD12 V 2.05   2012-03-16 SN:M4151153 ID STRING: 7
-
-SIGNAL      4.50 OFFSET    148.20 DRIFT      0.53
-REC. BACKSCATTER      500  CHANGE    -10
-TR. BACKSCATTER      -1.3  CHANGE   -0.0
-LEDI    3.1  AMBL    -1.0
-VBB    12.4  P12     11.4  M12     -11.2
-TS     18.6  TB        22
-TDRD     18  DRD    *   0  DRY   *1002.5
-HOOD HEATERS OFF
-HARDWARE :
- OK
-WARNINGS :
- DRD ERROR
-{ETX}";
+            string rawMessage = $"{SOH}PW  7{STX}PWD STATUS\r\nVAISALA PWD12 V 2.05   2012-03-16 SN:M4151153 ID STRING: 7\r\n\r\n SIGNAL      4.50 OFFSET    148.20 DRIFT      0.53\r\n REC. BACKSCATTER      500  CHANGE    -10\r\n TR. BACKSCATTER      -1.3  CHANGE   -0.0\r\n LEDI    3.1  AMBL    -1.0\r\n VBB    12.4  P12     11.4  M12     -11.2\r\n TS     18.6  TB        22\r\n TDRD     18  DRD    *   0  DRY   *1002.5\r\n HOOD HEATERS OFF\r\n HARDWARE :\r\n OK\r\n WARNINGS :\r\n DRD ERROR\r\n{ETX}\r\n";
 
             var message = VaisalaMessage.Parse(rawMessage);
 
