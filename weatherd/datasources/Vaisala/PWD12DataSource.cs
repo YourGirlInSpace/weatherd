@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Amazon.Auth.AccessControlPolicy;
 using Amazon.Runtime.Internal.Util;
 using Microsoft.Extensions.Configuration;
 using Serilog;
@@ -106,26 +107,53 @@ namespace weatherd.datasources.Vaisala
                     isDRDError = statusMessage.Warnings.Length == 1 && statusMessage.Warnings[0] == "DRD ERROR";
             }
 
-            WeatherCode weather = avMsg.InstantaneousWeather.HasValue
-                ? avMsg.InstantaneousWeather.Value
-                : WeatherCode.Unknown;
 
-            if (isDRDError && weather == WeatherCode.Unknown)
+            WMOCodeTable weather = WMOCodeTable.Unknown;
+            if (!avMsg.InstantaneousWeather.HasValue && avMsg.NWSWeatherCode.HasValue)
+            {
+                // Sometimes the WMO code is unavailable.  We can generalize using the
+                // NWS code table.
+                weather = avMsg.NWSWeatherCode.Value switch
+                {
+                    "C" => WMOCodeTable.Clear,
+                    "P" => WMOCodeTable.Precipitation,
+                    "-P" => WMOCodeTable.Precipitation,
+                    "+P" => WMOCodeTable.PrecipitationHeavy,
+                    "-L" => WMOCodeTable.DrizzleSlight,
+                    "L" => WMOCodeTable.Drizzle,
+                    "+L" => WMOCodeTable.DrizzleHeavy,
+                    "-R" => WMOCodeTable.RainLight,
+                    "R" => WMOCodeTable.Rain,
+                    "+R" => WMOCodeTable.RainHeavy,
+                    "-S" => WMOCodeTable.SnowLight,
+                    "S" => WMOCodeTable.Snow,
+                    "+S" => WMOCodeTable.SnowHeavy,
+                    "-IP" => WMOCodeTable.SleetLight,
+                    "IP" => WMOCodeTable.SleetModerate,
+                    "+IP" => WMOCodeTable.SleetHeavy,
+                    _ => weather
+                };
+            } else
+                weather = avMsg.InstantaneousWeather.Value;
+            
+            if (isDRDError && weather == WMOCodeTable.Unknown)
             {
                 // Let's try and make a best guess.  We'll presume that the RainCap is OOS.
                 // Since the RainCap functions normally during wet conditions, we will assume
                 // that there is no precipitation.
 
-                WeatherCode bestGuess = Conditions.Visibility.Value switch
+                WMOCodeTable bestGuess = Conditions.Visibility.Value switch
                 {
-                    >= 2000 => WeatherCode.Clear,
-                    < 2000 and >= 1000 => WeatherCode.HazeVisGreaterThan1Km,
-                    < 1000 => WeatherCode.HazeVisLessThan1Km,
-                    _ => WeatherCode.Unknown
+                    >= 2000 => WMOCodeTable.Clear,
+                    < 2000 and >= 1000 => WMOCodeTable.HazeVisGreaterThan1Km,
+                    < 1000 => WMOCodeTable.HazeVisLessThan1Km,
+                    _ => WMOCodeTable.Unknown
                 };
 
                 weather = bestGuess;
             }
+
+            WeatherCondition condition = WeatherCondition.FromWMOCode(weather);
 
             // We can make some inferences if we have temperature data.
             // By default, the PWD12 does not express this information.
@@ -136,29 +164,19 @@ namespace weatherd.datasources.Vaisala
             {
                 float temp = avMsg.Temperature.Value;
                 if (temp is >= -10 and <= 0)
-                    weather = weather switch
-                    {
-                        WeatherCode.Fog => WeatherCode.FreezingFog,
-                        WeatherCode.FogConstant => WeatherCode.FreezingFogConstant,
-                        WeatherCode.FogThinner => WeatherCode.FreezingFogThinner,
-                        WeatherCode.FogWorse => WeatherCode.FreezingFogWorse,
-                        WeatherCode.PatchyFog => WeatherCode.PatchyFreezingFog,
-                        WeatherCode.Drizzle => WeatherCode.FreezingDrizzle,
-                        WeatherCode.DrizzleSlight => WeatherCode.FreezingDrizzleSlight,
-                        WeatherCode.DrizzleModerate => WeatherCode.FreezingDrizzleModerate,
-                        WeatherCode.DrizzleHeavy => WeatherCode.FreezingDrizzleHeavy,
-                        _ => weather
-                    };
+                {
+                    if (condition.Precipitation == Precipitation.None && condition.Obscuration == Obscuration.Fog
+                        || condition.Precipitation is Precipitation.Rain or Precipitation.Rain)
+                        condition.Descriptor |= Descriptor.Freezing;
+                }
             }
-
-            string metarCode = weather.GetEnumMemberValue();
-
+            
             Log.Information("Visibility: {Visibility}\tWeather: {Weather} (METAR value {MetarCode}) {InAlarm}",
-                            $"{(Conditions.Visibility.Value >= 2000 ? ">" : "")}{Conditions.Visibility.ToString()}",
-                            weather, weather == WeatherCode.Clear ? "CLR" : metarCode ?? "?",
+                            $"{(Conditions.Visibility.Value >= 2000 ? ">" : "")}{Conditions.Visibility}",
+                            weather, weather == WMOCodeTable.Clear ? "CLR" : condition.ToString() ?? "?",
                             avMsg.HardwareAlarm == HardwareAlarm.None ? "" : "*");
 
-            Conditions.Weather = weather;
+            Conditions.Weather = condition;
             SampleAvailable?.Invoke(this, new WeatherDataEventArgs(Conditions));
 
             if (_lastPacketTime.DayOfYear != DateTime.Now.DayOfYear)

@@ -134,7 +134,7 @@ namespace weatherd.tests.datasources.Vaisala.Messages
             actualMessage.VisibilityAlarm.Should().Be(VisibilityAlarm.None);
             
             AssertValue(actualMessage.OneMinuteAverageVisibility, 1839);
-            AssertValue(actualMessage.InstantaneousWeather, WeatherCode.RainLight);
+            AssertValue(actualMessage.InstantaneousWeather, WMOCodeTable.RainLight);
             AssertValue(actualMessage.OneMinuteWaterIntensity, 0.3f);
         }
 
@@ -156,7 +156,7 @@ namespace weatherd.tests.datasources.Vaisala.Messages
             actualMessage.VisibilityAlarm.Should().Be(VisibilityAlarm.None);
 
             AssertNoValue(actualMessage.OneMinuteAverageVisibility);
-            AssertValue(actualMessage.InstantaneousWeather, WeatherCode.RainLight);
+            AssertValue(actualMessage.InstantaneousWeather, WMOCodeTable.RainLight);
             AssertValue(actualMessage.OneMinuteWaterIntensity, 0.3f);
         }
         
@@ -180,9 +180,9 @@ namespace weatherd.tests.datasources.Vaisala.Messages
             AssertValue(actualMessage.OneMinuteAverageVisibility, 6839);
             AssertValue(actualMessage.TenMinuteAverageVisibility, 7505);
             AssertValue(actualMessage.NWSWeatherCode, "R");
-            AssertValue(actualMessage.InstantaneousWeather, WeatherCode.RainLight);
-            AssertValue(actualMessage.Weather15Minute, WeatherCode.RainLight);
-            AssertValue(actualMessage.Weather1Hour, WeatherCode.RainLight);
+            AssertValue(actualMessage.InstantaneousWeather, WMOCodeTable.RainLight);
+            AssertValue(actualMessage.Weather15Minute, WMOCodeTable.RainLight);
+            AssertValue(actualMessage.Weather1Hour, WMOCodeTable.RainLight);
             AssertValue(actualMessage.OneMinuteWaterIntensity, 0.33f);
             AssertValue(actualMessage.CumulativeWater, 12.16f);
             AssertValue(actualMessage.CumulativeSnow, 0);
@@ -208,9 +208,9 @@ namespace weatherd.tests.datasources.Vaisala.Messages
             AssertValue(actualMessage.OneMinuteAverageVisibility, 6839);
             AssertValue(actualMessage.TenMinuteAverageVisibility, 7505);
             AssertValue(actualMessage.NWSWeatherCode, "R");
-            AssertValue(actualMessage.InstantaneousWeather, WeatherCode.RainLight);
-            AssertValue(actualMessage.Weather15Minute, WeatherCode.RainLight);
-            AssertValue(actualMessage.Weather1Hour, WeatherCode.RainLight);
+            AssertValue(actualMessage.InstantaneousWeather, WMOCodeTable.RainLight);
+            AssertValue(actualMessage.Weather15Minute, WMOCodeTable.RainLight);
+            AssertValue(actualMessage.Weather1Hour, WMOCodeTable.RainLight);
             AssertValue(actualMessage.OneMinuteWaterIntensity, 0.33f);
             AssertValue(actualMessage.CumulativeWater, 12.16f);
             AssertValue(actualMessage.CumulativeSnow, 0);

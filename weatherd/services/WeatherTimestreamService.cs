@@ -5,12 +5,11 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Amazon;
-using Amazon.Runtime;
 using Amazon.TimestreamWrite;
 using Amazon.TimestreamWrite.Model;
 using Microsoft.Extensions.Configuration;
 using Serilog;
+using UnitsNet;
 using UnitsNet.Units;
 using weatherd.datasources;
 using weatherd.io;
@@ -129,22 +128,9 @@ namespace weatherd.services
                 Log.Warning("Sample retrieved from weather data source did not update at polling interval");
                 return;
             }
-            
-            /*Log.Verbose("Sample:  T={Temp}  Dp={Dewpoint}  RH={RelativeHumidity}  P={Pressure} SLP={SeaLevelPressure} L={Irradiance}  Ws={WindSpeed}  Wd={WindDir}  Rain={Rain}  Visibility={Visibility}  Weather={Weather}",
-                        wxState.Temperature.ToUnit(TemperatureUnit.DegreeFahrenheit),
-                        wxState.Dewpoint.ToUnit(TemperatureUnit.DegreeFahrenheit),
-                        wxState.RelativeHumidity,
-                        wxState.Pressure.ToUnit(PressureUnit.InchOfMercury),
-                        wxState.SeaLevelPressure.ToUnit(PressureUnit.InchOfMercury),
-                        wxState.Luminosity.ToUnit(IrradianceUnit.WattPerSquareMeter),
-                        wxState.WindSpeed.ToUnit(SpeedUnit.MilePerHour),
-                        wxState.WindDirection,
-                        wxState.RainfallLastHour.ToUnit(LengthUnit.Inch),
-                        wxState.Visibility.ToUnit(LengthUnit.Meter),
-                        wxState.Weather);*/
-            
-            Log.Verbose("{Metar}", wxState.ToMETAR("KPAX"));
 
+            Extrapolate(ref wxState);
+            
             if (_enableDataWrite)
             {
                 try
@@ -162,6 +148,102 @@ namespace weatherd.services
             }
 
             lastState = wxState;
+        }
+
+        internal static void Extrapolate(ref WeatherState wxState)
+        {
+            /*
+             * We only want to extrapolate weather conditions, and thus we
+             * need a minimum of four pieces of information:
+             *   - Generalized weather code from precipitation discriminator
+             *   - Visibility
+             *   - Dewpoint
+             *   - Temperature
+             *
+             * We will use this table as a guideline:
+             *
+             * | WX CODE                      | VISIBILITY        | DEWPOINT DEPR.       | TEMPERATURE         | OUTPUT           |
+             * |------------------------------|-------------------|----------------------|---------------------|------------------|
+             * | RA, DZ                       |                   |                      | T > 0°C             | RA or DZ         |
+             * | RA, DZ                       |                   |                      | -10°C < T < 0°C     | FZRA or FZDZ     |
+             * | RA, DZ, FZRA, FZDZ, SN, RASN |                   |                      | T < -10°C           | SN               |
+             * | FZRA, FZDZ, SN, RASN, PL     |                   |                      | T > 6°C             | RA or DZ         |
+             * | HZ, FG, BR, CLR              | Vis < 2 km        | DD > 2°C             | N/A                 | HZ               |
+             * | HZ, FG, BR, CLR              | Vis > 1 km        | DD < 2°C             | T > 0°C             | BR               |
+             * | HZ, FG, BR, CLR              | Vis < 1 km        | DD < 2°C             | T > 0°C             | FG               |
+             * | HZ, FG, BR, CLR              | Vis < 1 km        | DD < 2°C             | T < 0°C             | FZFG             |
+             * |------------------------------|-------------------|----------------------|---------------------|------------------|
+             *
+             * Notes:
+             *   - Empty cells are not considered in the calculation.
+             *   - The above table tracks closely with ASOS algorithms, but omits a freezing rain sensor due to
+             *     the prohibitive cost of these sensors.
+             *   - It is presumed that rain or drizzle occurring below 0°C will be freezing rain or freezing drizzle.
+             *   - While it could be argued that we could include blowing snow in this algorithm, blowing snow is
+             *     entirely dependent on the composition of the snow, the angle of the winds and how easily lofted the
+             *     top layer of snow is.  As a result, we will not include blowing snow in our calculations.
+            */
+
+            if (wxState.Weather is null
+                || wxState.Visibility == default
+                || wxState.Dewpoint == default
+                || wxState.Temperature == default)
+                return;
+
+            WeatherCondition condition = wxState.Weather;
+
+            double t = wxState.Temperature.DegreesCelsius;
+            double dd = wxState.DewpointDepression.DegreesCelsius;
+            double vis = wxState.Visibility.Meters;
+
+            if (condition.Precipitation != Precipitation.None)
+            {
+                switch (t)
+                {
+                    case <= -10:
+                        condition.Descriptor &= ~Descriptor.Freezing;
+                        condition.Precipitation = condition.Precipitation switch
+                        {
+                            Precipitation.Rain => Precipitation.Snow,
+                            Precipitation.Drizzle => Precipitation.Snow,
+                            _ => condition.Precipitation
+                        };
+                        break;
+                    case > -10 and < 0:
+                        condition.Descriptor |= condition.Precipitation switch
+                        {
+                            Precipitation.Rain => Descriptor.Freezing,
+                            Precipitation.Drizzle => Descriptor.Freezing,
+                            _ => Descriptor.None
+                        };
+                        break;
+                    case > 0 and < 6:
+                        condition.Descriptor &= ~Descriptor.Freezing;
+                        break;
+                    case > 6:
+                        condition.Precipitation = condition.Precipitation switch
+                        {
+                            Precipitation.Snow => Precipitation.Rain,
+                            Precipitation.Sleet => Precipitation.Rain,
+                            _ => condition.Precipitation
+                        };
+                        break;
+                }
+            } else if (condition.Obscuration != Obscuration.None)
+            {
+                condition.Obscuration = vis switch
+                {
+                    < 2000 when dd > 2 => Obscuration.Haze,
+                    >= 1000 and < 2000 when dd < 2 => Obscuration.Mist,
+                    < 1000 when dd < 2 => Obscuration.Fog,
+                    _ => condition.Obscuration
+                };
+
+                if (condition.Obscuration == Obscuration.Fog && t < 0)
+                    condition.Descriptor |= Descriptor.Freezing;
+            }
+
+            wxState.Weather = condition;
         }
 
         private async Task WriteToTimestream(WeatherState wxState)
@@ -204,18 +286,25 @@ namespace weatherd.services
                                n => n.RainfallSinceMidnight,
                                n => n.Millimeters,
                                "RainSinceMidnight");
-            AddIfNotDuplicated(records, lastState, wxState,
-                               n => n.SnowfallSinceMidnight,
-                               n => n.Millimeters,
-                               "SnowSinceMidnight");
-            AddIfNotDuplicated(records, lastState, wxState,
-                               n => n.Visibility,
-                               n => n.Meters,
-                               "Visibility");
-            AddIfNotDuplicated(records, lastState, wxState,
-                               n => n.Weather,
-                               n => n.GetEnumMemberValue(),
-                               "Weather");
+
+            if (wxState.SnowfallSinceMidnight != default)
+                AddIfNotDuplicated(records, lastState, wxState,
+                                   n => n.SnowfallSinceMidnight,
+                                   n => n.Millimeters,
+                                   "SnowSinceMidnight");
+            
+            records.Add(new Record
+            {
+                MeasureName = "Visibility",
+                MeasureValueType = MeasureValueType.DOUBLE,
+                MeasureValue = wxState.Visibility.Meters.ToString(CultureInfo.InvariantCulture)
+            });
+            records.Add(new Record
+            {
+                MeasureName = "Weather",
+                MeasureValueType = MeasureValueType.VARCHAR,
+                MeasureValue = wxState.Weather.ToString()
+            });
 
             if (records.Count == 0)
                 return;
@@ -270,14 +359,21 @@ namespace weatherd.services
         private static void AddIfNotDuplicated<T, U>(ICollection<Record> list, WeatherState last, WeatherState current, Func<WeatherState, T> unitSelector, Func<T, U> valueSelector, string name, MeasureValueType mvt = null)
             where T : struct
         {
-            T lastMeasurement = unitSelector(last);
+            if (current is null)
+                throw new ArgumentNullException(nameof(current));
+            
             T currentMeasurement = unitSelector(current);
-
-            U lastValue = valueSelector(lastMeasurement);
             U currentValue = valueSelector(currentMeasurement);
 
-            if (lastValue.Equals(currentValue))
-                return;
+            if (last is not null)
+            {
+                T lastMeasurement = unitSelector(last);
+
+                U lastValue = valueSelector(lastMeasurement);
+
+                if (lastValue.Equals(currentValue))
+                    return;
+            }
             
             list.Add(new Record
             {

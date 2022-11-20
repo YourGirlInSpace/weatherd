@@ -174,7 +174,7 @@ namespace weatherd
         /// <summary>
         /// The current precipitation/obscuration conditions
         /// </summary>
-        public WeatherCode Weather { get; set; } = WeatherCode.Unknown;
+        public WeatherCondition Weather { get; set; }
 
         /// <summary>
         /// The precipitation water intensity in mm/h
@@ -203,8 +203,7 @@ namespace weatherd
                 if (_dewpoint > Temperature.Zero)
                     return _dewpoint;
 
-                throw new InsufficientMeteorologicalInformationException(
-                    "Insufficient data:  Humidity and Temperature required for Dewpoint calculation.");
+                return default;
             }
 
             set
@@ -228,7 +227,7 @@ namespace weatherd
                     return _humidity;
 
                 if (_dewpoint == Temperature.Zero)
-                    throw new InsufficientMeteorologicalInformationException("Insufficient data:  Dewpoint required for Humidity calculation.");
+                    return default;
 
                 return new RelativeHumidity(MixingRatio / SaturationMixingRatio * 100, RelativeHumidityUnit.Percent);
             }
@@ -496,9 +495,9 @@ namespace weatherd
                 }
             }
 
-            if (Weather != WeatherCode.Unknown)
+            if (Weather is not null)
             {
-                string? metarCode = Weather.GetEnumMemberValue();
+                string? metarCode = Weather.ToString();
 
                 if (!string.IsNullOrEmpty(metarCode))
                 {
@@ -596,7 +595,7 @@ namespace weatherd
                 BatteryVoltage = AOrB(a, b, x => x.BatteryVoltage),
                 EnclosureTemperature = AOrB(a, b, x => x.Temperature),
                 Visibility = AOrB(a, b, x => x.Visibility),
-                Weather = a.Weather == WeatherCode.Unknown ? b.Weather : a.Weather,
+                Weather = a.Weather is null ? b.Weather : a.Weather,
                 WaterIntensity = AOrB(a, b, x => x.WaterIntensity),
                 Dewpoint = AOrB(a, b, x => x.Dewpoint),
                 RelativeHumidity = AOrB(a, b, x => x.RelativeHumidity)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -141,7 +142,7 @@ namespace weatherd
             var type = enumVal.GetType();
             var memInfo = type.GetMember(enumVal.ToString());
             var attributes = memInfo[0].GetCustomAttributes(typeof(T), false);
-            return (attributes.Length > 0) ? (T)attributes[0] : null;
+            return attributes.Length > 0 ? (T)attributes[0] : null;
         }
 
         public static byte[] StringToByteArrayFastest(string hex) {
@@ -152,7 +153,7 @@ namespace weatherd
 
             for (int i = 0; i < hex.Length >> 1; ++i)
             {
-                arr[i] = (byte)((GetHexVal(hex[i << 1]) << 4) + (GetHexVal(hex[(i << 1) + 1])));
+                arr[i] = (byte)((GetHexVal(hex[i << 1]) << 4) + GetHexVal(hex[(i << 1) + 1]));
             }
 
             return arr;
@@ -165,7 +166,7 @@ namespace weatherd
             //For lowercase a-f letters:
             //return val - (val < 58 ? 48 : 87);
             //Or the two combined, but a bit slower:
-            return val - (val < 58 ? 48 : (val < 97 ? 55 : 87));
+            return val - (val < 58 ? 48 : val < 97 ? 55 : 87);
         }
 
         public static string GetEnumMemberValue<T>(this T value)
@@ -178,5 +179,9 @@ namespace weatherd
                    ?.GetCustomAttribute<EnumMemberAttribute>(false)
                    ?.Value;
         }
+
+        public static IEnumerable<T> GetFlags<T>(this T input)
+            where T : Enum =>
+            Enum.GetValues(input.GetType()).Cast<Enum>().Where(input.HasFlag).Cast<T>();
     }
 }

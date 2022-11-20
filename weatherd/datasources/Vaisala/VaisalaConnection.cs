@@ -94,6 +94,7 @@ namespace weatherd.datasources.Vaisala
         private async Task<bool> Connect(string comPort, int baud)
         {
             Connected = false;
+            Log.Verbose("Attempting to connect to Vaisala PWD12 on {ComPort}...", comPort);
             if (!Retry.Do(() => OpenPort(comPort, baud)))
                 return false;
 
@@ -136,7 +137,7 @@ namespace weatherd.datasources.Vaisala
 
         private async Task<bool> DataRunner(Action<VaisalaMessage> callback)
         {
-            if (!_port.IsOpen && !await Retry.DoAsync(() => Connect(_portName, _baud)))
+            if (!Connected && !await Retry.DoAsync(() => Connect(_portName, _baud)))
                 return false;
 
             while (true)

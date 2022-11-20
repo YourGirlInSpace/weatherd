@@ -44,12 +44,10 @@ namespace weatherd.tests
                 Pressure = standardPressure,
                 Temperature = temp
             };
-
-            Func<RelativeHumidity> test_relativeHumidity = () => weatherState.RelativeHumidity;
-
+            
             // Assert
             weatherState.Should().NotBeNull();
-            test_relativeHumidity.Should().Throw<InsufficientMeteorologicalInformationException>();
+            weatherState.RelativeHumidity.Should().Be(default);
         }
         
         [Fact]
@@ -89,11 +87,9 @@ namespace weatherd.tests
                 Temperature = temp
             };
 
-            Func<Temperature> test_dewpoint = () => weatherState.Dewpoint;
-
             // Assert
             weatherState.Should().NotBeNull();
-            test_dewpoint.Should().Throw<InsufficientMeteorologicalInformationException>();
+            weatherState.Dewpoint.Should().Be(default);
         }
         
         [Fact]
@@ -154,7 +150,7 @@ namespace weatherd.tests
             WeatherState b = new WeatherState()
             {
                 Visibility = new Length(2000, LengthUnit.Meter),
-                Weather = WeatherCode.RainLight
+                Weather = new WeatherCondition(Intensity.Light, Precipitation.Rain)
             };
             
             // Act
@@ -183,7 +179,7 @@ namespace weatherd.tests
                 WindSpeed = new Speed(11, SpeedUnit.Knot),
                 
                 Visibility = new Length(370, LengthUnit.Meter),
-                Weather = WeatherCode.Snow,
+                Weather = new WeatherCondition(Intensity.Moderate, Precipitation.Snow),
                 
                 Temperature = new Temperature(-1.7, TemperatureUnit.DegreeCelsius),
                 Dewpoint = new Temperature(-2.3, TemperatureUnit.DegreeCelsius),
