@@ -1,3 +1,5 @@
+[![Linux](https://github.com/YourGirlInSpace/weatherd/actions/workflows/dotnet-linux.yml/badge.svg)](https://github.com/YourGirlInSpace/weatherd/actions/workflows/dotnet-linux.yml) [![Windows](https://github.com/YourGirlInSpace/weatherd/actions/workflows/dotnet.yml/badge.svg)](https://github.com/YourGirlInSpace/weatherd/actions/workflows/dotnet.yml)
+
 # weatherd
 
 weatherd is a dual platform data handling service that interfaces with a Campbell Scientific data logger or a Vaisala PWD-style transmissometer, processes the data and writes it to AWS Timestream.  Due to the lack of Linux support and the proprietary data protocol used by Campbell Scientific data loggers, a significant amount of reverse-engineering was needed to be done to support the serial Pakbus data protocol to communicate with the data logger.
