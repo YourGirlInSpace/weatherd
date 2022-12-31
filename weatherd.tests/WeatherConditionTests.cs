@@ -12,7 +12,7 @@ namespace weatherd.tests
         public void ToString_ShouldGiveValidMetar_WhenGivenValidState()
         {
             // Arrange
-            Dictionary<WeatherCondition, string> mappingTable = new Dictionary<WeatherCondition, string>()
+            Dictionary<WeatherCondition, string> mappingTable = new Dictionary<WeatherCondition, string>
             {
                 { new WeatherCondition(Precipitation.None), "" },
                 { new WeatherCondition(Obscuration.Haze), "HZ" },

@@ -70,8 +70,8 @@ namespace weatherd.datasources.pakbus
             RemoteNodeID = (uint)remoteNodeId;
             SecurityCode = securityCode;
 
-            _portName = comPort;
-            _baud = baud;
+            PortName = comPort;
+            Baud = baud;
             _canceller = new CancellationTokenSource();
         }
 
@@ -153,7 +153,7 @@ namespace weatherd.datasources.pakbus
 
         private async Task<bool> DataRunner(Action<PakbusResult> callback)
         {
-            if (!Connected && !await Retry.DoAsync(() => Connect(_portName, _baud)))
+            if (!Connected && !await Retry.DoAsync(() => Connect(PortName, Baud)))
                 return false;
 
             while (true)
@@ -444,7 +444,7 @@ namespace weatherd.datasources.pakbus
             }
         }
 
-        private async Task<PakbusXTDClockResponse> GetTimeTransaction(uint from, uint to)
+        internal async Task<PakbusXTDClockResponse> GetTimeTransaction(uint from, uint to)
         {
             try
             {
@@ -496,7 +496,7 @@ namespace weatherd.datasources.pakbus
             }
         }
 
-        private async Task<XTDTableDefinition> DownloadXTDTableDefinitionsTransaction(uint from, uint to)
+        internal async Task<XTDTableDefinition> DownloadXTDTableDefinitionsTransaction(uint from, uint to)
         {
             try
             {
@@ -538,7 +538,7 @@ namespace weatherd.datasources.pakbus
             }
         }
 
-        private async Task<PakbusDataCollectResponseMessage> SendCollectDataTransaction(uint from, uint to, Table table)
+        internal async Task<PakbusDataCollectResponseMessage> SendCollectDataTransaction(uint from, uint to, Table table)
         {
             try
             {
@@ -567,10 +567,10 @@ namespace weatherd.datasources.pakbus
             }
         }
 
-        private readonly int _baud;
+        public int Baud { get; }
         private readonly CancellationTokenSource _canceller;
 
-        private readonly string _portName;
+        public string PortName { get; }
         private DateTime _lastClockSetTime = DateTime.UtcNow;
         private DateTime _lastPacketTime;
         private int _lastRecordNumber;

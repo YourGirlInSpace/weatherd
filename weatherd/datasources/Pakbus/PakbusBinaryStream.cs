@@ -30,7 +30,7 @@ namespace weatherd.datasources.pakbus
                 PakbusDatumType.Bool4 => ReadByte(),
                 PakbusDatumType.Byte => ReadByte(),
                 PakbusDatumType.UInt2 => ReadUInt16(),
-                PakbusDatumType.Uint4 => ReadUInt32(),
+                PakbusDatumType.UInt4 => ReadUInt32(),
                 PakbusDatumType.Int1 => ReadSByte(),
                 PakbusDatumType.Int2 => ReadInt16(),
                 PakbusDatumType.Int4 => ReadInt32(),

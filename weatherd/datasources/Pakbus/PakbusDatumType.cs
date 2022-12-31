@@ -4,7 +4,7 @@
     {
         Byte    = 1,
         UInt2   = 2,
-        Uint4   = 3,
+        UInt4   = 3,
         Int1    = 4,
         Int2    = 5,
         Int4    = 6,

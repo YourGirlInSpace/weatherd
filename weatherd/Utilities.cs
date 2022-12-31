@@ -183,5 +183,33 @@ namespace weatherd
         public static IEnumerable<T> GetFlags<T>(this T input)
             where T : Enum =>
             Enum.GetValues(input.GetType()).Cast<Enum>().Where(input.HasFlag).Cast<T>();
+        
+        // This shouldn't be so damn complex.
+        public static IEnumerable<T> GetConfigurationArray<T>(IConfigurationSection section)
+            where T : new()
+            => GetConfigurationArray<T>(section, new Dictionary<string, Func<string, object>>());
+
+        public static IEnumerable<T> GetConfigurationArray<T>(IConfigurationSection section, Dictionary<string, Func<string, object>> conversions)
+            where T : new()
+        {
+            Type typeOfT = typeof(T);
+            PropertyInfo[] properties = typeOfT.GetProperties();
+
+            foreach (var child in section.GetChildren())
+            {
+                T t = new T();
+
+                foreach (PropertyInfo propInfo in properties)
+                {
+                    object value = conversions.ContainsKey(propInfo.Name)
+                        ? conversions[propInfo.Name].Invoke(child.GetValue<string>(propInfo.Name))
+                        : child.GetValue(propInfo.PropertyType, propInfo.Name);
+
+                    propInfo.SetValue(t, value);
+                }
+
+                yield return t;
+            }
+        }
     }
 }

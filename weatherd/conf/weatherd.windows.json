@@ -1,8 +1,10 @@
 ﻿{
-  "DataSource": "Test",
+  "DataSources": [
+    "Pakbus"
+  ],
   "Logging": {
     "LogLevel": {
-      "Default": "Information"
+      "Default": "Verbose"
     }
   },
   "Serilog": {
@@ -10,18 +12,143 @@
     "Region": "us-east-1",
     "LogGroup": "weatherd",
     "LogLevel": {
-      "Default": "Information",
-      "System": "Information",
-      "Microsoft": "Information"
+      "Default": "Verbose",
+      "System": "Verbose",
+      "Microsoft": "Verbose"
     }
+  },
+  "WeatherService": {
+    "EnableCorrectness": true,
+    "Elevation": 113
   },
   "TimestreamService": {
     "EnableDataWrite": false,
-    "Altitude": 113
+    "Database": "weather",
+    "Table": "local",
+    "Dimensions": [
+      {
+        "Name": "Location",
+        "DimensionValueType": "VARCHAR",
+        "Value": "Local"
+      }
+    ],
+    "Records": [
+      {
+        "Name": "Temperature",
+        "Property": "Temperature",
+        "Unit": "DegreesCelsius",
+        "Type": "DOUBLE"
+      },
+      {
+        "Name": "Dewpoint",
+        "Property": "Dewpoint",
+        "Unit": "DegreesCelsius",
+        "Type": "DOUBLE"
+      },
+      {
+        "Name": "RelativeHumidity",
+        "Property": "RelativeHumidity",
+        "Unit": "Percent",
+        "Type": "DOUBLE"
+      },
+      {
+        "Name": "BarometricPressure",
+        "Property": "Pressure",
+        "Unit": "Hectopascals",
+        "Type": "DOUBLE"
+      },
+      {
+        "Name": "SeaLevelPressure",
+        "Property": "SeaLevelPressure",
+        "Unit": "Hectopascals",
+        "Type": "DOUBLE"
+      },
+      {
+        "Name": "Luminosity",
+        "Property": "Luminosity",
+        "Unit": "WattsPerSquareMeter",
+        "Type": "DOUBLE"
+      },
+      {
+        "Name": "WindSpeed",
+        "Property": "WindSpeed",
+        "Unit": "MetersPerSecond",
+        "Type": "DOUBLE"
+      },
+      {
+        "Name": "WindDirection",
+        "Property": "WindDirection",
+        "Unit": "Degrees",
+        "Type": "DOUBLE"
+      },
+      {
+        "Name": "RainSinceMidnight",
+        "Property": "RainSinceMidnight",
+        "Unit": "Millimeters",
+        "Type": "DOUBLE"
+      },
+      {
+        "Name": "SnowSinceMidnight",
+        "Property": "SnowfallSinceMidnight",
+        "Unit": "Millimeters",
+        "Type": "DOUBLE"
+      },
+      {
+        "Name": "Visibility",
+        "Property": "Visibility",
+        "Unit": "Meters",
+        "Type": "DOUBLE"
+      },
+      {
+        "Name": "Weather",
+        "Property": "Weather",
+        "Type": "VARCHAR"
+      },
+      {
+        "Name": "Weather15M",
+        "Property": "WeatherLast15Minutes",
+        "Type": "VARCHAR"
+      },
+      {
+        "Name": "Weather1H",
+        "Property": "WeatherLastHour",
+        "Type": "VARCHAR"
+      },
+      {
+        "Name": "PWDRainfallSinceMidnight",
+        "Property": "OpticalRainfallSinceMidnight",
+        "Unit": "Millimeters",
+        "Type": "DOUBLE"
+      },
+      {
+        "Name": "PWDWaterIntensity",
+        "Property": "WaterIntensity",
+        "Unit": "MillimetersPerHour",
+        "Type": "DOUBLE"
+      },
+      {
+        "Name": "BatteryChargeCurrent",
+        "Property": "BatteryChargeCurrent",
+        "Unit": "Ampere",
+        "Type": "DOUBLE"
+      },
+      {
+        "Name": "BatteryDrainCurrent",
+        "Property": "BatteryDrainCurrent",
+        "Unit": "Ampere",
+        "Type": "DOUBLE"
+      },
+      {
+        "Name": "BatteryVoltage",
+        "Property": "BatteryVoltage",
+        "Unit": "VoltDc",
+        "Type": "DOUBLE"
+      }
+    ]
   },
   "PakbusDataSource": {
     "Port": {
-      "Name": "COM6",
+      "Name": "COM9",
       "Baud": 9600
     },
     "NodeID": 4092,
@@ -33,7 +160,7 @@
       "Name": "COM9",
       "Baud": 9600,
       "SensorID": "7"
-    } 
+    }
   },
   "TestDataSource": {
     "Enabled": true,

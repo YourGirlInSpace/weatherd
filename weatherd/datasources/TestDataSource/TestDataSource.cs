@@ -190,7 +190,14 @@ namespace weatherd.datasources.testdatasource
                 WindSpeed = new Speed(windSpeed, SpeedUnit.MeterPerSecond),
                 RainfallLastHour = Length.Zero,
                 RainfallLast24Hours = Length.Zero,
-                RainfallSinceMidnight = Length.Zero
+                RainfallSinceMidnight = Length.Zero,
+                Weather = WeatherCondition.FromWMOCode(WMOCodeTable.Clear),
+                WeatherLast15Minutes = WeatherCondition.FromWMOCode(WMOCodeTable.Clear),
+                WeatherLastHour = WeatherCondition.FromWMOCode(WMOCodeTable.Clear),
+                Visibility = new Length(2000, LengthUnit.Meter),
+                BatteryVoltage = new ElectricPotentialDc(13.8, ElectricPotentialDcUnit.VoltDc),
+                BatteryChargeCurrent = new ElectricCurrent(482, ElectricCurrentUnit.Milliampere),
+                BatteryDrainCurrent = new ElectricCurrent(420, ElectricCurrentUnit.Milliampere)
             };
 
             SampleAvailable?.Invoke(this, new WeatherDataEventArgs(Conditions));

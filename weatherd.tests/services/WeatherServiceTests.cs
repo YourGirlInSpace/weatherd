@@ -7,10 +7,10 @@ using Xunit;
 
 namespace weatherd.tests.services
 {
-    public class WeatherTimestreamServiceTests
+    public class WeatherServiceTests
     {
         [Fact]
-        public void Extrapolate_NotSufficientInfo_StateNotChanged()
+        public void EnforceCorrectness_NotSufficientInfo_StateNotChanged()
         {
             // Arrange
             WeatherState wxState = new WeatherState
@@ -21,14 +21,14 @@ namespace weatherd.tests.services
             };
 
             // Act
-            WeatherTimestreamService.Extrapolate(ref wxState);
+            WeatherService.EnforceCorrectness(ref wxState);
 
             // Assert
             wxState.Weather.Precipitation.Should().NotBe(Precipitation.Snow);
         }
         
         [Fact]
-        public void Extrapolate_ShouldChangeRainAndDrizzleToSnow_WhenTemperatureIsBelowMinus10Celsius()
+        public void EnforceCorrectness_ShouldChangeRainAndDrizzleToSnow_WhenTemperatureIsBelowMinus10Celsius()
         {
             // Arrange
             WeatherState wxStateA = new WeatherState
@@ -49,8 +49,8 @@ namespace weatherd.tests.services
             };
 
             // Act
-            WeatherTimestreamService.Extrapolate(ref wxStateA);
-            WeatherTimestreamService.Extrapolate(ref wxStateB);
+            WeatherService.EnforceCorrectness(ref wxStateA);
+            WeatherService.EnforceCorrectness(ref wxStateB);
 
             // Assert
             wxStateA.Weather.Precipitation.Should().Be(Precipitation.Snow, "rain should be snow at -40°C");
@@ -58,7 +58,7 @@ namespace weatherd.tests.services
         }
         
         [Fact]
-        public void Extrapolate_ShouldNotChangeOtherPrecipitationToSnow_WhenTemperatureIsBelowMinus10Celsius()
+        public void EnforceCorrectness_ShouldNotChangeOtherPrecipitationToSnow_WhenTemperatureIsBelowMinus10Celsius()
         {
             // Arrange
             WeatherState wxStateA = new WeatherState
@@ -79,8 +79,8 @@ namespace weatherd.tests.services
             };
 
             // Act
-            WeatherTimestreamService.Extrapolate(ref wxStateA);
-            WeatherTimestreamService.Extrapolate(ref wxStateB);
+            WeatherService.EnforceCorrectness(ref wxStateA);
+            WeatherService.EnforceCorrectness(ref wxStateB);
 
             // Assert
             wxStateA.Weather.Precipitation.Should().NotBe(Precipitation.Snow);
@@ -88,7 +88,7 @@ namespace weatherd.tests.services
         }
         
         [Fact]
-        public void Extrapolate_ShouldMarkRainAndDrizzleAsFreezing_WhenTemperatureIs0CelsiusAndAboveNegative10()
+        public void EnforceCorrectness_ShouldMarkRainAndDrizzleAsFreezing_WhenTemperatureIs0CelsiusAndAboveNegative10()
         {
             // Arrange
             WeatherState wxStateA = new WeatherState
@@ -109,8 +109,8 @@ namespace weatherd.tests.services
             };
 
             // Act
-            WeatherTimestreamService.Extrapolate(ref wxStateA);
-            WeatherTimestreamService.Extrapolate(ref wxStateB);
+            WeatherService.EnforceCorrectness(ref wxStateA);
+            WeatherService.EnforceCorrectness(ref wxStateB);
 
             // Assert
             wxStateA.Weather.Descriptor.Should().HaveFlag(Descriptor.Freezing);
@@ -118,7 +118,7 @@ namespace weatherd.tests.services
         }
 
         [Fact]
-        public void Extrapolate_ShouldNotMarkRainAndDrizzleAsFreezing_WhenTemperatureIsBelowNegative10()
+        public void EnforceCorrectness_ShouldNotMarkRainAndDrizzleAsFreezing_WhenTemperatureIsBelowNegative10()
         {
             // Arrange
             WeatherState wxStateA = new WeatherState
@@ -139,8 +139,8 @@ namespace weatherd.tests.services
             };
 
             // Act
-            WeatherTimestreamService.Extrapolate(ref wxStateA);
-            WeatherTimestreamService.Extrapolate(ref wxStateB);
+            WeatherService.EnforceCorrectness(ref wxStateA);
+            WeatherService.EnforceCorrectness(ref wxStateB);
 
             // Assert
             wxStateA.Weather.Descriptor.Should().NotHaveFlag(Descriptor.Freezing);
@@ -148,7 +148,7 @@ namespace weatherd.tests.services
         }
 
         [Fact]
-        public void Extrapolate_ShouldRemoveFreezingFlag_WhenTemperatureIsBelowNegative10()
+        public void EnforceCorrectness_ShouldRemoveFreezingFlag_WhenTemperatureIsBelowNegative10()
         {
             // Arrange
             WeatherState wxStateA = new WeatherState
@@ -169,8 +169,8 @@ namespace weatherd.tests.services
             };
 
             // Act
-            WeatherTimestreamService.Extrapolate(ref wxStateA);
-            WeatherTimestreamService.Extrapolate(ref wxStateB);
+            WeatherService.EnforceCorrectness(ref wxStateA);
+            WeatherService.EnforceCorrectness(ref wxStateB);
 
             // Assert
             wxStateA.Weather.Descriptor.Should().NotHaveFlag(Descriptor.Freezing);
@@ -178,7 +178,7 @@ namespace weatherd.tests.services
         }
 
         [Fact]
-        public void Extrapolate_ShouldRemoveFreezingFlag_WhenTemperatureIsAbove0()
+        public void EnforceCorrectness_ShouldRemoveFreezingFlag_WhenTemperatureIsAbove0()
         {
             // Arrange
             WeatherState wxStateA = new WeatherState
@@ -199,8 +199,8 @@ namespace weatherd.tests.services
             };
 
             // Act
-            WeatherTimestreamService.Extrapolate(ref wxStateA);
-            WeatherTimestreamService.Extrapolate(ref wxStateB);
+            WeatherService.EnforceCorrectness(ref wxStateA);
+            WeatherService.EnforceCorrectness(ref wxStateB);
 
             // Assert
             wxStateA.Weather.Descriptor.Should().NotHaveFlag(Descriptor.Freezing);
@@ -208,14 +208,14 @@ namespace weatherd.tests.services
         }
         
         [Fact]
-        public void Extrapolate_ShouldChangeSnowAndSleetToRain_WhenTemperatureIsAbove6Celsius()
+        public void EnforceCorrectness_ShouldChangeSnowAndSleetToRain_WhenTemperatureIsAbove10Celsius()
         {
             // Arrange
             WeatherState wxStateA = new WeatherState
             {
                 Time = DateTime.UtcNow,
                 Weather = new WeatherCondition(Intensity.Moderate, Descriptor.None, Precipitation.Snow, Obscuration.None),
-                Temperature = new Temperature(10, TemperatureUnit.DegreeCelsius),
+                Temperature = new Temperature(11, TemperatureUnit.DegreeCelsius),
                 Dewpoint = new Temperature(-50, TemperatureUnit.DegreeCelsius),
                 Visibility = new Length(2, LengthUnit.Kilometer)
             };
@@ -223,14 +223,14 @@ namespace weatherd.tests.services
             {
                 Time = DateTime.UtcNow,
                 Weather = new WeatherCondition(Intensity.Moderate, Descriptor.None, Precipitation.Sleet, Obscuration.None),
-                Temperature = new Temperature(10, TemperatureUnit.DegreeCelsius),
+                Temperature = new Temperature(11, TemperatureUnit.DegreeCelsius),
                 Dewpoint = new Temperature(-50, TemperatureUnit.DegreeCelsius),
                 Visibility = new Length(2, LengthUnit.Kilometer)
             };
 
             // Act
-            WeatherTimestreamService.Extrapolate(ref wxStateA);
-            WeatherTimestreamService.Extrapolate(ref wxStateB);
+            WeatherService.EnforceCorrectness(ref wxStateA);
+            WeatherService.EnforceCorrectness(ref wxStateB);
 
             // Assert
             wxStateA.Weather.Precipitation.Should().Be(Precipitation.Rain);
@@ -238,7 +238,7 @@ namespace weatherd.tests.services
         }
         
         [Fact]
-        public void Extrapolate_ShouldCorrectObscurationToHaze_WhenVisibilityIsLessThan2KMAndDewpointDepressionIsGreaterThan2Celsius()
+        public void EnforceCorrectness_ShouldCorrectObscurationToHaze_WhenVisibilityIsLessThan2KMAndDewpointDepressionIsGreaterThan2Celsius()
         {
             // Arrange
             WeatherState wxState = new WeatherState
@@ -251,14 +251,14 @@ namespace weatherd.tests.services
             };
 
             // Act
-            WeatherTimestreamService.Extrapolate(ref wxState);
+            WeatherService.EnforceCorrectness(ref wxState);
 
             // Assert
             wxState.Weather.Obscuration.Should().Be(Obscuration.Haze);
         }
         
         [Fact]
-        public void Extrapolate_ShouldCorrectObscurationToMist_WhenVisibilityIsLessThan2KMAndDewpointDepressionIsLessThan2Celsius()
+        public void EnforceCorrectness_ShouldCorrectObscurationToMist_WhenVisibilityIsLessThan2KMAndDewpointDepressionIsLessThan2Celsius()
         {
             // Arrange
             WeatherState wxState = new WeatherState
@@ -271,14 +271,14 @@ namespace weatherd.tests.services
             };
 
             // Act
-            WeatherTimestreamService.Extrapolate(ref wxState);
+            WeatherService.EnforceCorrectness(ref wxState);
 
             // Assert
             wxState.Weather.Obscuration.Should().Be(Obscuration.Mist);
         }
         
         [Fact]
-        public void Extrapolate_ShouldCorrectObscurationToFog_WhenVisibilityIsLessThan1KMAndDewpointDepressionIsLessThan2Celsius()
+        public void EnforceCorrectness_ShouldCorrectObscurationToFog_WhenVisibilityIsLessThan1KMAndDewpointDepressionIsLessThan2Celsius()
         {
             // Arrange
             WeatherState wxState = new WeatherState
@@ -291,14 +291,14 @@ namespace weatherd.tests.services
             };
 
             // Act
-            WeatherTimestreamService.Extrapolate(ref wxState);
+            WeatherService.EnforceCorrectness(ref wxState);
 
             // Assert
             wxState.Weather.Obscuration.Should().Be(Obscuration.Fog);
         }
         
         [Fact]
-        public void Extrapolate_ShouldAddFreezingDescriptorToFog_WhenTemperatureIsBelowZero()
+        public void EnforceCorrectness_ShouldAddFreezingDescriptorToFog_WhenTemperatureIsBelowZero()
         {
             // Arrange
             WeatherState wxState = new WeatherState
@@ -311,7 +311,7 @@ namespace weatherd.tests.services
             };
 
             // Act
-            WeatherTimestreamService.Extrapolate(ref wxState);
+            WeatherService.EnforceCorrectness(ref wxState);
 
             // Assert
             wxState.Weather.Obscuration.Should().Be(Obscuration.Fog);

@@ -132,6 +132,11 @@ namespace weatherd
         public Length RainfallSinceMidnight { get; set; }
 
         /// <summary>
+        /// Total optical rainfall since midnight local time, in inches
+        /// </summary>
+        public Length OpticalRainfallSinceMidnight { get; set; }
+
+        /// <summary>
         /// Total rainfall since midnight local time, in millimeters
         /// </summary>
         public Length SnowfallSinceMidnight { get; set; }
@@ -162,6 +167,16 @@ namespace weatherd
         public ElectricPotentialDc BatteryVoltage { get; set; }
 
         /// <summary>
+        /// Battery charging current.
+        /// </summary>
+        public ElectricCurrent BatteryChargeCurrent { get; set; }
+
+        /// <summary>
+        /// Battery drain current.
+        /// </summary>
+        public ElectricCurrent BatteryDrainCurrent { get; set; }
+
+        /// <summary>
         /// Station enclosure temperature in °C
         /// </summary>
         public Temperature EnclosureTemperature { get; set; }
@@ -175,6 +190,16 @@ namespace weatherd
         /// The current precipitation/obscuration conditions
         /// </summary>
         public WeatherCondition Weather { get; set; }
+
+        /// <summary>
+        /// The 15 minute precipitation/obscuration conditions
+        /// </summary>
+        public WeatherCondition WeatherLast15Minutes { get; set; }
+
+        /// <summary>
+        /// The 1 hour precipitation/obscuration conditions
+        /// </summary>
+        public WeatherCondition WeatherLastHour { get; set; }
 
         /// <summary>
         /// The precipitation water intensity in mm/h
@@ -193,17 +218,11 @@ namespace weatherd
                 double Gamma(Temperature t, RelativeHumidity rv)
                     => Log(rv.Percent/100.0) + 17.5 * t.DegreesCelsius / (237.3 + t.DegreesCelsius);
 
-                if (_suppliedHumidity)
-                {
+                if (!_suppliedHumidity)
+                    return _dewpoint > Temperature.Zero ? _dewpoint : default;
 
-                    _dewpoint = new Temperature(237.3 * Gamma(Temperature, RelativeHumidity) / (17.5 - Gamma(Temperature, RelativeHumidity)), TemperatureUnit.DegreeCelsius);
-                    return _dewpoint;
-                }
-
-                if (_dewpoint > Temperature.Zero)
-                    return _dewpoint;
-
-                return default;
+                _dewpoint = new Temperature(237.3 * Gamma(Temperature, RelativeHumidity) / (17.5 - Gamma(Temperature, RelativeHumidity)), TemperatureUnit.DegreeCelsius);
+                return _dewpoint;
             }
 
             set
@@ -226,10 +245,7 @@ namespace weatherd
                 if (_suppliedHumidity && _humidity > RelativeHumidity.Zero)
                     return _humidity;
 
-                if (_dewpoint == Temperature.Zero)
-                    return default;
-
-                return new RelativeHumidity(MixingRatio / SaturationMixingRatio * 100, RelativeHumidityUnit.Percent);
+                return _dewpoint == Temperature.Zero ? default : new RelativeHumidity(MixingRatio / SaturationMixingRatio * 100, RelativeHumidityUnit.Percent);
             }
 
             set
@@ -444,6 +460,11 @@ namespace weatherd
         /// </summary>
         private Temperature _dewpoint = Temperature.Zero;
 
+        /// <summary>
+        /// Translates the current meteorological state into a METAR string.
+        /// </summary>
+        /// <param name="locationCode">An ICAO location code describing the station's position</param>
+        /// <returns>A METAR string representing the current meteorological state</returns>
         public string ToMETAR(string locationCode)
         {
             // The minimum information we need for a valid METAR is temperature and pressure.
@@ -495,15 +516,12 @@ namespace weatherd
                 }
             }
 
-            if (Weather is not null)
-            {
-                string? metarCode = Weather.ToString();
+            string metarCode = Weather?.ToString();
 
-                if (!string.IsNullOrEmpty(metarCode))
-                {
-                    metarBuilder.Append(metarCode);
-                    metarBuilder.Append(' ');
-                }
+            if (!string.IsNullOrEmpty(metarCode))
+            {
+                metarBuilder.Append(metarCode);
+                metarBuilder.Append(' ');
             }
 
             if (Temperature != default && Dewpoint != default)
@@ -531,7 +549,7 @@ namespace weatherd
             {
                 metarBuilder.Append("SLP");
 
-                var adjustedSLP = (SeaLevelPressure.Hectopascals * 10) - 10000;
+                var adjustedSLP = SeaLevelPressure.Hectopascals * 10 - 10000;
                 metarBuilder.Append(adjustedSLP.ToString("000"));
                 metarBuilder.Append(' ');
             }
@@ -595,7 +613,7 @@ namespace weatherd
                 BatteryVoltage = AOrB(a, b, x => x.BatteryVoltage),
                 EnclosureTemperature = AOrB(a, b, x => x.Temperature),
                 Visibility = AOrB(a, b, x => x.Visibility),
-                Weather = a.Weather is null ? b.Weather : a.Weather,
+                Weather = a.Weather ?? b.Weather,
                 WaterIntensity = AOrB(a, b, x => x.WaterIntensity),
                 Dewpoint = AOrB(a, b, x => x.Dewpoint),
                 RelativeHumidity = AOrB(a, b, x => x.RelativeHumidity)

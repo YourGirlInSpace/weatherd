@@ -1,4 +1,5 @@
 ﻿using System;
+using Serilog;
 
 namespace weatherd.datasources.Vaisala.Messages
 {
@@ -24,6 +25,8 @@ namespace weatherd.datasources.Vaisala.Messages
 
         public static VaisalaMessage Parse(string message)
         {
+            Log.Verbose("[PWD12]: {Message}", message.Trim(SOH, STX, ETX, '\r', '\n'));
+
             var span = message.Trim().AsSpan();
             
             // 9 = SOH + 'PW ' + ID(2) + SOT + Msg + EOT

@@ -68,10 +68,13 @@ namespace weatherd.datasources.pakbus.Messages.BMP5
                 //uint byteOffset = bs.ReadUInt32();
             } else
             {
-                bs.Seek(-1, SeekOrigin.Current);
+                // Skip number of records.  This should always be 1 for Inlocs.
+                bs.ReadByte();
 
                 // Skip the time field
                 NSec nsec = bs.ReadUSec();
+
+                Log.Verbose("Record time: {RecTime}", nsec.ToTime());
 
                 Results.Add("RECTIME", nsec.ToUnixTimestamp());
                 Results.Add("RECNO", (int) startRecord);

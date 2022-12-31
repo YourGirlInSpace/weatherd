@@ -182,6 +182,9 @@ namespace weatherd
             metarBuilder.Append(Obscuration.GetEnumMemberValue());
             metarBuilder.Append(Other.GetEnumMemberValue());
 
+            if (metarBuilder.Length == 0)
+                return "";
+
             return metarBuilder.ToString();
         }
 

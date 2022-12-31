@@ -90,9 +90,11 @@ namespace weatherd.datasources.Vaisala
                 Conditions.Visibility = new Length(avMsg.TenMinuteAverageVisibility.Value, LengthUnit.Meter);
             else if (avMsg.OneMinuteAverageVisibility.HasValue)
                 Conditions.Visibility = new Length(avMsg.OneMinuteAverageVisibility.Value, LengthUnit.Meter);
-
+            
             if (avMsg.OneMinuteWaterIntensity.HasValue)
                 Conditions.WaterIntensity = new Speed(avMsg.OneMinuteWaterIntensity.Value, SpeedUnit.MillimeterPerHour);
+            if (avMsg.CumulativeWater.HasValue)
+                Conditions.OpticalRainfallSinceMidnight = new Length(avMsg.CumulativeWater.Value, LengthUnit.Millimeter);
             if (avMsg.CumulativeSnow.HasValue)
                 Conditions.SnowfallSinceMidnight = new Length(avMsg.CumulativeSnow.Value, LengthUnit.Millimeter);
 
@@ -107,8 +109,10 @@ namespace weatherd.datasources.Vaisala
                     isDRDError = statusMessage.Warnings.Length == 1 && statusMessage.Warnings[0] == "DRD ERROR";
             }
 
-
+            
             WMOCodeTable weather = WMOCodeTable.Unknown;
+            WMOCodeTable weather15 = WMOCodeTable.Unknown;
+            WMOCodeTable weather1H = WMOCodeTable.Unknown;
             if (!avMsg.InstantaneousWeather.HasValue && avMsg.NWSWeatherCode.HasValue)
             {
                 // Sometimes the WMO code is unavailable.  We can generalize using the
@@ -139,8 +143,8 @@ namespace weatherd.datasources.Vaisala
             if (isDRDError && weather == WMOCodeTable.Unknown)
             {
                 // Let's try and make a best guess.  We'll presume that the RainCap is OOS.
-                // Since the RainCap functions normally during wet conditions, we will assume
-                // that there is no precipitation.
+                // Since we cannot make a determination based on the RainCap's status, we must
+                // assume dry conditions.
 
                 WMOCodeTable bestGuess = Conditions.Visibility.Value switch
                 {
@@ -153,7 +157,36 @@ namespace weatherd.datasources.Vaisala
                 weather = bestGuess;
             }
 
+            if (avMsg.Weather15Minute.HasValue)
+                weather15 = avMsg.Weather15Minute.Value;
+            if (avMsg.Weather1Hour.HasValue)
+                weather1H = avMsg.Weather1Hour.Value;
+
+            // Ignore any of the "old" indications
+            weather15 = weather15 switch
+            {
+                WMOCodeTable.DrizzleOld => weather,
+                WMOCodeTable.FogOld => weather,
+                WMOCodeTable.FreezingRainOld => weather,
+                WMOCodeTable.PrecipitationOld => weather,
+                WMOCodeTable.RainOld => weather,
+                WMOCodeTable.SnowOld => weather,
+                _ => weather15
+            };
+            weather1H = weather1H switch
+            {
+                WMOCodeTable.DrizzleOld => weather15,
+                WMOCodeTable.FogOld => weather15,
+                WMOCodeTable.FreezingRainOld => weather15,
+                WMOCodeTable.PrecipitationOld => weather15,
+                WMOCodeTable.RainOld => weather15,
+                WMOCodeTable.SnowOld => weather15,
+                _ => weather1H
+            };
+
             WeatherCondition condition = WeatherCondition.FromWMOCode(weather);
+            WeatherCondition condition15 = WeatherCondition.FromWMOCode(weather15);
+            WeatherCondition condition1H = WeatherCondition.FromWMOCode(weather1H);
 
             // We can make some inferences if we have temperature data.
             // By default, the PWD12 does not express this information.
@@ -171,19 +204,27 @@ namespace weatherd.datasources.Vaisala
                 }
             }
             
-            Log.Information("Visibility: {Visibility}\tWeather: {Weather} (METAR value {MetarCode}) {InAlarm}",
+            Log.Information("Visibility: {Visibility}\tWeather: {Weather} / {Weather15} / {Weather1H} (METAR value {MetarCode} / {MetarCode15} / {MetarCode1H}) {InAlarm}",
                             $"{(Conditions.Visibility.Value >= 2000 ? ">" : "")}{Conditions.Visibility}",
-                            weather, weather == WMOCodeTable.Clear ? "CLR" : condition.ToString() ?? "?",
+                            weather,
+                            weather15,
+                            weather1H,
+                            weather == WMOCodeTable.Clear ? "CLR" : condition.ToString() ?? "?",
+                            weather15 == WMOCodeTable.Clear ? "CLR" : condition15.ToString() ?? "?",
+                            weather1H == WMOCodeTable.Clear ? "CLR" : condition1H.ToString() ?? "?",
                             avMsg.HardwareAlarm == HardwareAlarm.None ? "" : "*");
 
             Conditions.Weather = condition;
+            Conditions.WeatherLast15Minutes = condition15;
+            Conditions.WeatherLastHour = condition1H;
+
             SampleAvailable?.Invoke(this, new WeatherDataEventArgs(Conditions));
 
             if (_lastPacketTime.DayOfYear != DateTime.Now.DayOfYear)
                 if (!Retry.Do(() => AsyncHelpers.RunSync(() => _connection.SendResetTotalsCommand())))
                     Log.Warning("Could not reset precipitation totals on PWD12!");
 
-            _lastPacketTime = DateTime.UtcNow;
+            _lastPacketTime = DateTime.Now;
         }
 
         private readonly VaisalaConnection _connection;

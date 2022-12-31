@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AWS.Logger.SeriLog;
@@ -35,18 +36,24 @@ namespace weatherd
 
             IServiceProvider serviceProvider = ConfigureServices(args);
 
-            var timestreamService = serviceProvider.GetRequiredService<IWeatherTimestreamService>();
-            IAsyncWeatherDataSource dataSource = GetConfiguredDataSource(serviceProvider);
-            IVaisalaDataSource vDataSource = serviceProvider.GetRequiredService<IVaisalaDataSource>();
+            var cliOptions = serviceProvider.GetRequiredService<CommandLineOptions>();
+            if (cliOptions.ShowPakbus)
+            {
+                await ShowPakbusContents(serviceProvider);
+                return;
+            }
 
-            if (!await timestreamService.Initialize(dataSource, vDataSource))
+            var weatherService = serviceProvider.GetRequiredService<IWeatherService>();
+
+            IAsyncWeatherDataSource[] dataSources = GetConfiguredDataSource(serviceProvider).ToArray();
+            if (!await weatherService.Initialize(dataSources))
             {
                 Log.Fatal("Failed to initialize Timestream service");
                 return;
             }
 
             AutoResetEvent endSignaller = new AutoResetEvent(false);
-            if (!await timestreamService.Start(endSignaller))
+            if (!await weatherService.Start(endSignaller))
             {
                 Log.Fatal("Failed to start Timestream service");
                 return;
@@ -59,12 +66,26 @@ namespace weatherd
             Log.Verbose("Thank you for participating in this Aperture Science computer-aided enrichment activity");
         }
 
+        private static async Task ShowPakbusContents(IServiceProvider serviceProvider)
+        {
+            IPakbusDataSource pakbusDataSource = serviceProvider.GetRequiredService<IPakbusDataSource>();
+            
+            if (!await pakbusDataSource.Initialize())
+            {
+                Log.Fatal("Could not initialize Pakbus.");
+                return;
+            }
+            
+            pakbusDataSource.EmitPakbusInformation();
+        }
+
         private static IServiceProvider ConfigureServices(IEnumerable<string> args)
         {
             var services = new ServiceCollection();
             services.AddSingleton(Configuration);
             services.AddTransient<ITimestreamClient, TimestreamClient>();
-            services.AddSingleton<IWeatherTimestreamService, WeatherTimestreamService>();
+            services.AddSingleton<IWeatherService, WeatherService>();
+            services.AddSingleton<ITimestreamService, TimestreamService>();
 #if DEBUG
             services.AddTransient<ITestDataSource, TestDataSource>();
 #endif
@@ -85,24 +106,27 @@ namespace weatherd
             return services.BuildServiceProvider();
         }
 
-        private static IAsyncWeatherDataSource GetConfiguredDataSource(IServiceProvider serviceProvider)
+        private static IEnumerable<IAsyncWeatherDataSource> GetConfiguredDataSource(IServiceProvider serviceProvider)
         {
             if (serviceProvider == null)
                 throw new ArgumentNullException(nameof(serviceProvider));
 
-            if (!Enum.TryParse(Configuration.GetValue("DataSource", "Test"), out DataSourceType dataSourceType))
-            {
-                Log.Fatal("Could not determine data source type to load");
-                return null;
-            }
-            
-            Log.Information("Loading the {DataSourceType} data source!", dataSourceType);
+            var dataSourceNames = Configuration.GetSection("DataSources").Get<string[]>();
 
-            try
+            foreach (string name in dataSourceNames)
             {
-                return dataSourceType switch
+                if (!Enum.TryParse(name, out DataSourceType dataSourceType))
+                {
+                    Log.Fatal("Could not determine data source type to load");
+                    yield break;
+                }
+            
+                Log.Information("Loading the {DataSourceType} data source!", dataSourceType);
+
+                yield return dataSourceType switch
                 {
                     DataSourceType.Pakbus => serviceProvider.GetRequiredService<IPakbusDataSource>(),
+                    DataSourceType.Vaisala => serviceProvider.GetRequiredService<IVaisalaDataSource>(),
 #if DEBUG
                     DataSourceType.Test => serviceProvider.GetRequiredService<ITestDataSource>(),
 #else
@@ -111,10 +135,6 @@ namespace weatherd
 #endif
                     _ => throw new ArgumentOutOfRangeException()
                 };
-            } catch (Exception ex)
-            {
-                Log.Fatal(ex, "Could not configure data source");
-                return null;
             }
         }
 
