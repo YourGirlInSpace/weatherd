@@ -25,7 +25,7 @@ namespace weatherd.tests
         /// <inheritdoc />
         public override byte[] Encode()
         {
-            PakbusBinaryStream bs = new PakbusBinaryStream(Endianness.Big);
+            PakbusBinaryStream bs = new(Endianness.Big);
             bs.Write((byte)((int)MessageType & 0xFF));
             bs.Write(TransactionNumber);
 

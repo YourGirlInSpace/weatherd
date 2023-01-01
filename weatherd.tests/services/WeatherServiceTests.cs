@@ -13,7 +13,7 @@ namespace weatherd.tests.services
         public void EnforceCorrectness_NotSufficientInfo_StateNotChanged()
         {
             // Arrange
-            WeatherState wxState = new WeatherState
+            WeatherState wxState = new()
             {
                 Time = DateTime.UtcNow,
                 Weather = new WeatherCondition(Intensity.Moderate, Descriptor.None, Precipitation.Rain, Obscuration.Fog),
@@ -31,7 +31,7 @@ namespace weatherd.tests.services
         public void EnforceCorrectness_ShouldChangeRainAndDrizzleToSnow_WhenTemperatureIsBelowMinus10Celsius()
         {
             // Arrange
-            WeatherState wxStateA = new WeatherState
+            WeatherState wxStateA = new()
             {
                 Time = DateTime.UtcNow,
                 Weather = new WeatherCondition(Intensity.Moderate, Descriptor.None, Precipitation.Rain, Obscuration.None),
@@ -39,7 +39,7 @@ namespace weatherd.tests.services
                 Dewpoint = new Temperature(-50, TemperatureUnit.DegreeCelsius),
                 Visibility = new Length(2, LengthUnit.Kilometer)
             };
-            WeatherState wxStateB = new WeatherState
+            WeatherState wxStateB = new()
             {
                 Time = DateTime.UtcNow,
                 Weather = new WeatherCondition(Intensity.Moderate, Descriptor.None, Precipitation.Drizzle, Obscuration.None),
@@ -61,7 +61,7 @@ namespace weatherd.tests.services
         public void EnforceCorrectness_ShouldNotChangeOtherPrecipitationToSnow_WhenTemperatureIsBelowMinus10Celsius()
         {
             // Arrange
-            WeatherState wxStateA = new WeatherState
+            WeatherState wxStateA = new()
             {
                 Time = DateTime.UtcNow,
                 Weather = new WeatherCondition(Intensity.Moderate, Descriptor.None, Precipitation.Sleet, Obscuration.None),
@@ -69,7 +69,7 @@ namespace weatherd.tests.services
                 Dewpoint = new Temperature(-50, TemperatureUnit.DegreeCelsius),
                 Visibility = new Length(2, LengthUnit.Kilometer)
             };
-            WeatherState wxStateB = new WeatherState
+            WeatherState wxStateB = new()
             {
                 Time = DateTime.UtcNow,
                 Weather = new WeatherCondition(Intensity.Moderate, Descriptor.None, Precipitation.Unknown, Obscuration.None),
@@ -91,7 +91,7 @@ namespace weatherd.tests.services
         public void EnforceCorrectness_ShouldMarkRainAndDrizzleAsFreezing_WhenTemperatureIs0CelsiusAndAboveNegative10()
         {
             // Arrange
-            WeatherState wxStateA = new WeatherState
+            WeatherState wxStateA = new()
             {
                 Time = DateTime.UtcNow,
                 Weather = new WeatherCondition(Intensity.Moderate, Descriptor.None, Precipitation.Rain, Obscuration.None),
@@ -99,7 +99,7 @@ namespace weatherd.tests.services
                 Dewpoint = new Temperature(-4, TemperatureUnit.DegreeCelsius),
                 Visibility = new Length(2, LengthUnit.Kilometer)
             };
-            WeatherState wxStateB = new WeatherState
+            WeatherState wxStateB = new()
             {
                 Time = DateTime.UtcNow,
                 Weather = new WeatherCondition(Intensity.Moderate, Descriptor.None, Precipitation.Drizzle, Obscuration.None),
@@ -121,7 +121,7 @@ namespace weatherd.tests.services
         public void EnforceCorrectness_ShouldNotMarkRainAndDrizzleAsFreezing_WhenTemperatureIsBelowNegative10()
         {
             // Arrange
-            WeatherState wxStateA = new WeatherState
+            WeatherState wxStateA = new()
             {
                 Time = DateTime.UtcNow,
                 Weather = new WeatherCondition(Intensity.Moderate, Descriptor.None, Precipitation.Rain, Obscuration.None),
@@ -129,7 +129,7 @@ namespace weatherd.tests.services
                 Dewpoint = new Temperature(-14, TemperatureUnit.DegreeCelsius),
                 Visibility = new Length(2, LengthUnit.Kilometer)
             };
-            WeatherState wxStateB = new WeatherState
+            WeatherState wxStateB = new()
             {
                 Time = DateTime.UtcNow,
                 Weather = new WeatherCondition(Intensity.Moderate, Descriptor.None, Precipitation.Drizzle, Obscuration.None),
@@ -151,7 +151,7 @@ namespace weatherd.tests.services
         public void EnforceCorrectness_ShouldRemoveFreezingFlag_WhenTemperatureIsBelowNegative10()
         {
             // Arrange
-            WeatherState wxStateA = new WeatherState
+            WeatherState wxStateA = new()
             {
                 Time = DateTime.UtcNow,
                 Weather = new WeatherCondition(Intensity.Moderate, Descriptor.Freezing, Precipitation.Rain, Obscuration.None),
@@ -159,7 +159,7 @@ namespace weatherd.tests.services
                 Dewpoint = new Temperature(-14, TemperatureUnit.DegreeCelsius),
                 Visibility = new Length(2, LengthUnit.Kilometer)
             };
-            WeatherState wxStateB = new WeatherState
+            WeatherState wxStateB = new()
             {
                 Time = DateTime.UtcNow,
                 Weather = new WeatherCondition(Intensity.Moderate, Descriptor.Freezing, Precipitation.Drizzle, Obscuration.None),
@@ -181,7 +181,7 @@ namespace weatherd.tests.services
         public void EnforceCorrectness_ShouldRemoveFreezingFlag_WhenTemperatureIsAbove0()
         {
             // Arrange
-            WeatherState wxStateA = new WeatherState
+            WeatherState wxStateA = new()
             {
                 Time = DateTime.UtcNow,
                 Weather = new WeatherCondition(Intensity.Moderate, Descriptor.Freezing, Precipitation.Rain, Obscuration.None),
@@ -189,7 +189,7 @@ namespace weatherd.tests.services
                 Dewpoint = new Temperature(-14, TemperatureUnit.DegreeCelsius),
                 Visibility = new Length(2, LengthUnit.Kilometer)
             };
-            WeatherState wxStateB = new WeatherState
+            WeatherState wxStateB = new()
             {
                 Time = DateTime.UtcNow,
                 Weather = new WeatherCondition(Intensity.Moderate, Descriptor.Freezing, Precipitation.Drizzle, Obscuration.None),
@@ -211,7 +211,7 @@ namespace weatherd.tests.services
         public void EnforceCorrectness_ShouldChangeSnowAndSleetToRain_WhenTemperatureIsAbove10Celsius()
         {
             // Arrange
-            WeatherState wxStateA = new WeatherState
+            WeatherState wxStateA = new()
             {
                 Time = DateTime.UtcNow,
                 Weather = new WeatherCondition(Intensity.Moderate, Descriptor.None, Precipitation.Snow, Obscuration.None),
@@ -219,7 +219,7 @@ namespace weatherd.tests.services
                 Dewpoint = new Temperature(-50, TemperatureUnit.DegreeCelsius),
                 Visibility = new Length(2, LengthUnit.Kilometer)
             };
-            WeatherState wxStateB = new WeatherState
+            WeatherState wxStateB = new()
             {
                 Time = DateTime.UtcNow,
                 Weather = new WeatherCondition(Intensity.Moderate, Descriptor.None, Precipitation.Sleet, Obscuration.None),
@@ -241,7 +241,7 @@ namespace weatherd.tests.services
         public void EnforceCorrectness_ShouldCorrectObscurationToHaze_WhenVisibilityIsLessThan2KMAndDewpointDepressionIsGreaterThan2Celsius()
         {
             // Arrange
-            WeatherState wxState = new WeatherState
+            WeatherState wxState = new()
             {
                 Time = DateTime.UtcNow,
                 Weather = new WeatherCondition(Intensity.Moderate, Descriptor.None, Precipitation.None, Obscuration.Fog),
@@ -261,7 +261,7 @@ namespace weatherd.tests.services
         public void EnforceCorrectness_ShouldCorrectObscurationToMist_WhenVisibilityIsLessThan2KMAndDewpointDepressionIsLessThan2Celsius()
         {
             // Arrange
-            WeatherState wxState = new WeatherState
+            WeatherState wxState = new()
             {
                 Time = DateTime.UtcNow,
                 Weather = new WeatherCondition(Intensity.Moderate, Descriptor.None, Precipitation.None, Obscuration.Fog),
@@ -281,7 +281,7 @@ namespace weatherd.tests.services
         public void EnforceCorrectness_ShouldCorrectObscurationToFog_WhenVisibilityIsLessThan1KMAndDewpointDepressionIsLessThan2Celsius()
         {
             // Arrange
-            WeatherState wxState = new WeatherState
+            WeatherState wxState = new()
             {
                 Time = DateTime.UtcNow,
                 Weather = new WeatherCondition(Intensity.Moderate, Descriptor.None, Precipitation.None, Obscuration.Haze),
@@ -301,7 +301,7 @@ namespace weatherd.tests.services
         public void EnforceCorrectness_ShouldAddFreezingDescriptorToFog_WhenTemperatureIsBelowZero()
         {
             // Arrange
-            WeatherState wxState = new WeatherState
+            WeatherState wxState = new()
             {
                 Time = DateTime.UtcNow,
                 Weather = new WeatherCondition(Intensity.Moderate, Descriptor.None, Precipitation.None, Obscuration.Fog),

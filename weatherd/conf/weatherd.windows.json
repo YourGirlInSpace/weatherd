@@ -2,6 +2,11 @@
   "DataSources": [
     "Pakbus"
   ],
+  "Site": {
+    "Elevation": 113,
+    "Latitude": 0,
+    "Longitude": 0
+  },
   "Logging": {
     "LogLevel": {
       "Default": "Verbose"
@@ -17,9 +22,13 @@
       "Microsoft": "Verbose"
     }
   },
+  "CWOPService": {
+    "Enabled": false,
+    "Callsign": "",
+    "Equipment": ""
+  },
   "WeatherService": {
-    "EnableCorrectness": true,
-    "Elevation": 113
+    "EnableCorrectness": true
   },
   "TimestreamService": {
     "EnableDataWrite": false,

@@ -5,6 +5,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Configurations>Debug;Release (Windows);Release (Linux);Debug (No Verbose);Debug (Linux)</Configurations>
     <LangVersion>9</LangVersion>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (Windows)|AnyCPU'">
@@ -61,6 +62,15 @@
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     <PackageReference Include="System.IO.Ports" Version="6.0.0" />
     <PackageReference Include="UnitsNet" Version="4.144.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\weatherd.aprs\weatherd.aprs.csproj" />
+    <ProjectReference Include="..\weatherd.common\weatherd.common.csproj" />
+    <ProjectReference Include="..\weatherd.pakbus\weatherd.pakbus.csproj" />
+    <ProjectReference Include="..\weatherd.simulator\weatherd.simulator.csproj" />
+    <ProjectReference Include="..\weatherd.timestream\weatherd.timestream.csproj" />
+    <ProjectReference Include="..\weatherd.vaisala\weatherd.vaisala.csproj" />
   </ItemGroup>
 
   <ItemGroup>

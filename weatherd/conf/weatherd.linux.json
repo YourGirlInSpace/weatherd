@@ -1,7 +1,12 @@
 ﻿{
-  "DataSource": "Test",
+  "DataSources": [
+    "Pakbus",
+    "Vaisala"
+  ],
   "Site": {
-    "Elevation": 113
+    "Elevation": 113,
+    "Latitude": 0,
+    "Longitude": 0
   },
   "Logging": {
     "LogLevel": {
@@ -18,9 +23,13 @@
       "Microsoft": "Information"
     }
   },
+  "CWOPService": {
+    "Enabled": false,
+    "Callsign": "",
+    "Equipment": ""
+  },
   "WeatherService": {
-    "EnableCorrectness": true,
-    "Elevation": 113
+    "EnableCorrectness": true
   },
   "TimestreamService": {
     "EnableDataWrite": false,
@@ -130,19 +139,25 @@
       {
         "Name": "BatteryChargeCurrent",
         "Property": "BatteryChargeCurrent",
-        "Unit": "Ampere",
+        "Unit": "Amperes",
         "Type": "DOUBLE"
       },
       {
         "Name": "BatteryDrainCurrent",
         "Property": "BatteryDrainCurrent",
-        "Unit": "Ampere",
+        "Unit": "Amperes",
         "Type": "DOUBLE"
       },
       {
         "Name": "BatteryVoltage",
         "Property": "BatteryVoltage",
-        "Unit": "VoltDc",
+        "Unit": "VoltsDc",
+        "Type": "DOUBLE"
+      },
+      {
+        "Name": "EnclosureTemperature",
+        "Property": "EnclosureTemperature",
+        "Unit": "DegreesCelsius",
         "Type": "DOUBLE"
       }
     ]

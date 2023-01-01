@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -10,10 +9,7 @@ using Amazon.TimestreamWrite;
 using Amazon.TimestreamWrite.Model;
 using Microsoft.Extensions.Configuration;
 using Serilog;
-using UnitsNet;
-using UnitsNet.Units;
-using weatherd.datasources;
-using weatherd.io;
+using weatherd.timestream;
 
 namespace weatherd.services
 {
@@ -27,13 +23,13 @@ namespace weatherd.services
     public class TimestreamService : ITimestreamService
     {
         private readonly ITimestreamClient timestreamClient;
-        private readonly bool _enableDataWrite = true;
+        private bool _enableDataWrite = true;
         private static long _RecordVersion;
 
-        private readonly string _databaseName;
-        private readonly string _tableName;
-        private readonly RecordDefinition[] _recordDefinitions;
-        private readonly Dimension[] _dimensions;
+        private string _databaseName;
+        private string _tableName;
+        private RecordDefinition[] _recordDefinitions;
+        private Dimension[] _dimensions;
 
         public TimestreamService(IConfiguration config, ITimestreamClient client)
         {
@@ -42,10 +38,16 @@ namespace weatherd.services
 
             timestreamClient = client;
 
+            LoadConfig(config);
+        }
+
+        private void LoadConfig(IConfiguration config)
+        {
             IConfigurationSection tsConfig = config.GetSection("TimestreamService");
 
             if (tsConfig is null)
-                return;
+                throw new StationConfigurationException(
+                    $"Failed to load configuration for {nameof(TimestreamService)}:  'TimestreamService' is missing.");
 
             _enableDataWrite = tsConfig.GetValue("EnableDataWrite", true);
             _databaseName = tsConfig.GetValue("Database", "weather");
@@ -111,19 +113,23 @@ namespace weatherd.services
             if (!_enableDataWrite)
                 return;
 
-            List<Record> records = new List<Record>();
-
+            List<Record> records = new();
             foreach (RecordDefinition defn in _recordDefinitions)
             {
                 try
                 {
                     object value = GetProperty(wxState, defn.Property, defn.Unit);
+                    string sValue = value.ToString();
+
+                    if (string.IsNullOrEmpty(sValue))
+                        continue;
+
                     MeasureValueType mvt = MeasureValueType.FindValue(defn.Type.ToUpperInvariant());
                     records.Add(new Record
                     {
                         MeasureName = defn.Name,
                         MeasureValueType = mvt,
-                        MeasureValue = value.ToString()
+                        MeasureValue = sValue
                     });
                 } catch
                 {
@@ -135,7 +141,7 @@ namespace weatherd.services
                 return;
 
             long recordVersion = Interlocked.Increment(ref _RecordVersion);
-            WriteRecordsRequest recordsRequest = new WriteRecordsRequest
+            WriteRecordsRequest recordsRequest = new()
             {
                 DatabaseName = _databaseName,
                 TableName = _tableName,

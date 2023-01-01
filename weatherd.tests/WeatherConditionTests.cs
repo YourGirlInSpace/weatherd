@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using FluentAssertions;
 using Xunit;
 
@@ -12,7 +10,7 @@ namespace weatherd.tests
         public void ToString_ShouldGiveValidMetar_WhenGivenValidState()
         {
             // Arrange
-            Dictionary<WeatherCondition, string> mappingTable = new Dictionary<WeatherCondition, string>
+            Dictionary<WeatherCondition, string> mappingTable = new()
             {
                 { new WeatherCondition(Precipitation.None), "" },
                 { new WeatherCondition(Obscuration.Haze), "HZ" },

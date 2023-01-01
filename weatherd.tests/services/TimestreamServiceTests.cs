@@ -13,7 +13,7 @@ namespace weatherd.tests.services
         public void GetProperty_ShouldReturnValidData_WhenProvidedValidPropertyAndUnit()
         {
             // Arrange 
-            WeatherState wxState = new WeatherState
+            WeatherState wxState = new()
             {
                 Temperature = new Temperature(23, TemperatureUnit.DegreeCelsius)
             };
@@ -30,7 +30,7 @@ namespace weatherd.tests.services
         public void GetProperty_ShouldThrowInvalidOperationException_WhenProvidedInvalidProperty()
         {
             // Arrange
-            WeatherState wxState = new WeatherState
+            WeatherState wxState = new()
             {
                 Temperature = new Temperature(23, TemperatureUnit.DegreeCelsius)
             };
@@ -48,7 +48,7 @@ namespace weatherd.tests.services
         public void GetProperty_ShouldThrowInvalidOperationException_WhenProvidedInvalidUnit()
         {
             // Arrange
-            WeatherState wxState = new WeatherState
+            WeatherState wxState = new()
             {
                 Temperature = new Temperature(23, TemperatureUnit.DegreeCelsius)
             };
@@ -66,7 +66,7 @@ namespace weatherd.tests.services
         public void GetProperty_ShouldThrowInvalidOperationException_WhenValueIsNotSet()
         {
             // Arrange
-            WeatherState wxState = new WeatherState
+            WeatherState wxState = new()
             {
                 Temperature = new Temperature(23, TemperatureUnit.DegreeCelsius)
             };

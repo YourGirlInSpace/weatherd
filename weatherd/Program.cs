@@ -11,8 +11,8 @@ using Serilog;
 using weatherd.datasources;
 using weatherd.datasources.pakbus;
 using weatherd.datasources.Vaisala;
-using weatherd.io;
 using weatherd.services;
+using weatherd.timestream;
 #if DEBUG
 using weatherd.datasources.testdatasource;
 #endif
@@ -52,7 +52,7 @@ namespace weatherd
                 return;
             }
 
-            AutoResetEvent endSignaller = new AutoResetEvent(false);
+            AutoResetEvent endSignaller = new(false);
             if (!await weatherService.Start(endSignaller))
             {
                 Log.Fatal("Failed to start Timestream service");
@@ -86,6 +86,7 @@ namespace weatherd
             services.AddTransient<ITimestreamClient, TimestreamClient>();
             services.AddSingleton<IWeatherService, WeatherService>();
             services.AddSingleton<ITimestreamService, TimestreamService>();
+            services.AddSingleton<ICWOPService, CWOPService>();
 #if DEBUG
             services.AddTransient<ITestDataSource, TestDataSource>();
 #endif
@@ -133,7 +134,7 @@ namespace weatherd
                     DataSourceType.Test => throw new InvalidOperationException(
                         "Test data source is unavailable in release versions.")
 #endif
-                    _ => throw new ArgumentOutOfRangeException()
+                    _ => throw new StationConfigurationException($"Failed to load data source type '{dataSourceType}':  Data source does not exist.")
                 };
             }
         }

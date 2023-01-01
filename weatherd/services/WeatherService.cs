@@ -21,28 +21,40 @@ namespace weatherd.services
     public class WeatherService : IWeatherService
     {
         private readonly ITimestreamService _timestreamService;
+        private readonly ICWOPService _cwopService;
         private IAsyncWeatherDataSource[] _wxDataSources;
         private WeatherState lastState;
         private AutoResetEvent _endSignaller;
-        private readonly bool _enableCorrectness;
-        private readonly float _elevation;
+        private bool _enableCorrectness;
+        private float _elevation;
 
         /// <inheritdoc />
         public bool IsRunning => _wxDataSources.All(x => x.Running);
 
-        public WeatherService(IConfiguration config, ITimestreamService timestreamService)
+        public WeatherService(IConfiguration config, ITimestreamService timestreamService, ICWOPService cwopService)
         {
             if (config == null)
                 throw new ArgumentNullException(nameof(config));
             _timestreamService = timestreamService ?? throw new ArgumentNullException(nameof(timestreamService));
-            
+            _cwopService = cwopService ?? throw new ArgumentNullException(nameof(cwopService));
+
+            LoadConfig(config);
+        }
+
+        private void LoadConfig(IConfiguration config)
+        {
             IConfigurationSection wxConfig = config.GetSection("WeatherService");
+            IConfigurationSection siteConfig = config.GetSection("Site");
 
             if (wxConfig is null)
-                return;
+                throw new StationConfigurationException(
+                    $"Failed to load configuration for {nameof(WeatherService)}:  'WeatherService' is missing.");
+            if (siteConfig is null)
+                throw new StationConfigurationException(
+                    $"Failed to load configuration for {nameof(WeatherService)}:  'Site' is missing.");
 
             _enableCorrectness = wxConfig.GetValue("EnableCorrectness", true);
-            _elevation = wxConfig.GetValue("Elevation", 0);
+            _elevation = siteConfig.GetValue("Elevation", 0);
         }
 
         /// <inheritdoc />
@@ -103,12 +115,20 @@ namespace weatherd.services
 
             if (lastState != null && lastState.Time == wxState.Time)
             {
-                Log.Warning("Sample retrieved from weather data source did not update at polling interval");
+                Log.Debug("Sample retrieved from weather data source did not update at polling interval");
                 return;
             }
 
             if (_enableCorrectness)
                 EnforceCorrectness(ref wxState);
+
+            try
+            {
+                await _cwopService.SendCWOP(wxState);
+            } catch
+            {
+                // ignore;  CWOP is an auxiliary data stream.
+            }
 
             try
             {

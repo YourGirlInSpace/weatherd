@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO.Ports;
 using weatherd.datasources.pakbus;
 using weatherd.io;
@@ -103,9 +101,9 @@ namespace weatherd.tests
 
                     foreach (byte rB in resp)
                         _deviceQueue.Enqueue(rB);
-                } catch (Exception ex)
+                } catch
                 {
-
+                    // Ignore
                 }
             }
         }
