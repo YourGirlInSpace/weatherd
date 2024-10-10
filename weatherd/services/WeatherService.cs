@@ -20,7 +20,7 @@ namespace weatherd.services
 
     public class WeatherService : IWeatherService
     {
-        private readonly ITimestreamService _timestreamService;
+        private readonly IInfluxService _influxService;
         private readonly ICWOPService _cwopService;
         private IAsyncWeatherDataSource[] _wxDataSources;
         private WeatherState lastState;
@@ -31,11 +31,11 @@ namespace weatherd.services
         /// <inheritdoc />
         public bool IsRunning => _wxDataSources.All(x => x.Running);
 
-        public WeatherService(IConfiguration config, ITimestreamService timestreamService, ICWOPService cwopService)
+        public WeatherService(IConfiguration config, IInfluxService influxService, ICWOPService cwopService)
         {
             if (config == null)
                 throw new ArgumentNullException(nameof(config));
-            _timestreamService = timestreamService ?? throw new ArgumentNullException(nameof(timestreamService));
+            _influxService = influxService ?? throw new ArgumentNullException(nameof(influxService));
             _cwopService = cwopService ?? throw new ArgumentNullException(nameof(cwopService));
 
             LoadConfig(config);
@@ -68,8 +68,8 @@ namespace weatherd.services
                 if (!await wxds.Initialize())
                     throw new InvalidOperationException("Could not initialize data source.");
 
-            if (!_timestreamService.Initialized)
-                return await _timestreamService.Initialize();
+            if (!_influxService.Initialized)
+                return await _influxService.Initialize();
 
             return true;
         }
@@ -132,14 +132,10 @@ namespace weatherd.services
 
             try
             {
-                await _timestreamService.WriteToTimestream(wxState);
-            } catch (RecordIngestForbiddenException rife)
-            {
-                Log.Fatal(rife, "Cannot write records to Timestream.  Terminating...");
-                await Stop();
+                await _influxService.Push(wxState);
             } catch (Exception ex)
             {
-                Log.Error(ex, "Failed to ingest logs into Timestream.");
+                Log.Error(ex, "Failed to ingest logs into Influx");
                 throw;
             }
             

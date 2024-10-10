@@ -84,6 +84,7 @@ namespace weatherd
             var services = new ServiceCollection();
             services.AddSingleton(Configuration);
             services.AddTransient<ITimestreamClient, TimestreamClient>();
+            services.AddTransient<IInfluxService, InfluxService>();
             services.AddSingleton<IWeatherService, WeatherService>();
             services.AddSingleton<ITimestreamService, TimestreamService>();
             services.AddSingleton<ICWOPService, CWOPService>();
