@@ -222,6 +222,7 @@ namespace weatherd.datasources.pakbus
             if (r.ResponseCode != PakbusXTDResponseCode.ClockNotChanged)
                 throw new InvalidOperationException("Get clock command managed to set the clock!!");
 
+            _lastClockSetTime = DateTime.UtcNow;
             TimeSpan deviation = DateTime.Now - r.Time.ToTime();
             Log.Information(
                 "Datalogger clock is {Time}, which differs from server time by {Deviation} seconds",

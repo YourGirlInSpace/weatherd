@@ -183,7 +183,7 @@ namespace weatherd
             metarBuilder.Append(Other.GetEnumMemberValue());
 
             if (metarBuilder.Length == 0)
-                return "";
+                return "CLR";
 
             return metarBuilder.ToString();
         }

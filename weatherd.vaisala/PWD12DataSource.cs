@@ -202,7 +202,7 @@ namespace weatherd.datasources.Vaisala
                 }
             }
             
-            Log.Information("Visibility: {Visibility}\tWeather: {Weather} / {Weather15} / {Weather1H} (METAR value {MetarCode} / {MetarCode15} / {MetarCode1H}) {InAlarm}",
+            Log.Debug("Visibility: {Visibility}\tWeather: {Weather} / {Weather15} / {Weather1H} (METAR value {MetarCode} / {MetarCode15} / {MetarCode1H}) {InAlarm}",
                             $"{(Conditions.Visibility.Value >= 2000 ? ">" : "")}{Conditions.Visibility}",
                             weather,
                             weather15,

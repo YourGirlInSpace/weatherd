@@ -136,7 +136,7 @@ namespace weatherd.services
             } catch (Exception ex)
             {
                 Log.Error(ex, "Failed to ingest logs into Influx");
-                throw;
+                return;
             }
             
             lastState = wxState;
