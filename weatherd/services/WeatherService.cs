@@ -13,7 +13,7 @@ namespace weatherd.services
     public interface IWeatherService
     {
         bool IsRunning { get; }
-        Task<bool> zInitialize(params IAsyncWeatherDataSource[] dataSource);
+        Task<bool> Initialize(params IAsyncWeatherDataSource[] dataSource);
         Task<bool> Start(AutoResetEvent endSignaller);
         Task<bool> Stop();
     }
