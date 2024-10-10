@@ -44,7 +44,7 @@ namespace weatherd.services
                 .Field("dewpoint", state.Dewpoint.DegreesCelsius)
                 .Field("relative_humidity", state.RelativeHumidity.Percent)
                 .Field("barometric_pressure", state.Pressure.Hectopascals)
-                .Field("sea_leveL_pressure", state.SeaLevelPressure.Hectopascals)
+                .Field("sea_level_pressure", state.SeaLevelPressure.Hectopascals)
                 .Field("luminosity", state.Luminosity.WattsPerSquareMeter)
                 .Field("wind_speed", state.WindSpeed.MetersPerSecond)
                 .Field("wind_direction", state.WindDirection.Degrees)
@@ -56,6 +56,7 @@ namespace weatherd.services
                 .Field("batt_drain_current", state.BatteryDrainCurrent.Amperes)
                 .Field("batt_voltage", state.BatteryVoltage.VoltsDc)
                 .Field("enclosure_temperature", state.EnclosureTemperature.DegreesCelsius)
+                .Field("weather", state.Weather.ToString())
                 .Timestamp(DateTime.UtcNow, WritePrecision.S);
 
             var writeApi = _client.GetWriteApiAsync();
