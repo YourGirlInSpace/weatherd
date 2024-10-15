@@ -29,8 +29,115 @@
     "Equipment": ""
   },
   "WeatherService": {
-    "EnableCorrectness": true
+    "EnableCorrectness": true,
+    "AnemometerOrientation": 0
   },
+    "InfluxService": {
+      "EnableDataWrite": false,
+      "Bucket": "weather",
+      "Organization": "org",
+      "Endpoint": "http://127.0.0.1:8086",
+      "Token": "",
+      "Records": [
+        {
+          "Name": "temperature",
+          "Property": "Temperature",
+          "Unit": "DegreesCelsius"
+        },
+        {
+          "Name": "dewpoint",
+          "Property": "Dewpoint",
+          "Unit": "DegreesCelsius"
+        },
+        {
+          "Name": "relative_humidity",
+          "Property": "RelativeHumidity",
+          "Unit": "Percent"
+        },
+        {
+          "Name": "barometric_pressure",
+          "Property": "Pressure",
+          "Unit": "Hectopascals"
+        },
+        {
+          "Name": "sea_level_pressure",
+          "Property": "SeaLevelPressure",
+          "Unit": "Hectopascals"
+        },
+        {
+          "Name": "luminosity",
+          "Property": "Luminosity",
+          "Unit": "WattsPerSquareMeter"
+        },
+        {
+          "Name": "wind_speed",
+          "Property": "WindSpeed",
+          "Unit": "MetersPerSecond"
+        },
+        {
+          "Name": "wind_direction",
+          "Property": "WindDirection",
+          "Unit": "Degrees"
+        },
+        {
+          "Name": "rainfall_since_midnight",
+          "Property": "RainSinceMidnight",
+          "Unit": "Millimeters"
+        },
+        {
+          "Name": "snowfall_since_midnight",
+          "Property": "SnowfallSinceMidnight",
+          "Unit": "Millimeters"
+        },
+        {
+          "Name": "visibility",
+          "Property": "Visibility",
+          "Unit": "Meters"
+        },
+        {
+          "Name": "weather",
+          "Property": "Weather"
+        },
+        {
+          "Name": "weather_15m",
+          "Property": "WeatherLast15Minutes"
+        },
+        {
+          "Name": "weather_1h",
+          "Property": "WeatherLastHour"
+        },
+        {
+          "Name": "optical_rainfall_since_midnight",
+          "Property": "OpticalRainfallSinceMidnight",
+          "Unit": "Millimeters"
+        },
+        {
+          "Name": "pwd_intensity",
+          "Property": "WaterIntensity",
+          "Unit": "MillimetersPerHour"
+        },
+        {
+          "Name": "batt_charge_current",
+          "Property": "BatteryChargeCurrent",
+          "Unit": "Amperes"
+        },
+        {
+          "Name": "batt_drain_current",
+          "Property": "BatteryDrainCurrent",
+          "Unit": "Amperes"
+        },
+        {
+          "Name": "batt_voltage",
+          "Property": "BatteryVoltage",
+          "Unit": "VoltsDc"
+        },
+        {
+          "Name": "enclosure_temperature",
+          "Property": "EnclosureTemperature",
+          "Unit": "DegreesCelsius"
+        }
+      ]
+    },
   "TimestreamService": {
     "EnableDataWrite": false,
     "Database": "weather",

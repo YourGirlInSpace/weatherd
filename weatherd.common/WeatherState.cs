@@ -492,6 +492,10 @@ namespace weatherd
                 metarBuilder.Append("KT");
                 metarBuilder.Append(' ');
             }
+            else
+            {
+                metarBuilder.Append("00000KT ");
+            }
 
             if (Visibility != default)
             {
@@ -510,6 +514,9 @@ namespace weatherd
                         break;
                     case < 1f:
                         metarBuilder.Append("1SM ");
+                        break;
+                    default:
+                        metarBuilder.Append("10SM");
                         break;
                 }
             }

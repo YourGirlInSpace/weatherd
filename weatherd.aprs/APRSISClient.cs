@@ -126,9 +126,10 @@ namespace weatherd.aprs
                 return false;
             }
 
-            IsVerified = response.IsVerified;
+            // CWOP doesn't have verification
+            IsVerified = response.IsVerified || Host == CWOP;
             if (!IsVerified)
-                Log.Warning("Login successful, APRS client in receive-only mode.");
+                Log.Warning("Login successful, APRS client in receive-only mode");
 
             Server = response.Server;
 

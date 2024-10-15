@@ -1,11 +1,11 @@
 ﻿namespace weatherd
 {
-    public class RecordDefinition
+    public class TimestreamRecordDefinition
     {
-        public RecordDefinition()
+        public TimestreamRecordDefinition()
         { }
 
-        public RecordDefinition(string Name, string Property, string Unit, string Type)
+        public TimestreamRecordDefinition(string Name, string Property, string Unit, string Type)
         {
             this.Name = Name;
             this.Property = Property;

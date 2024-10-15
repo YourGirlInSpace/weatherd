@@ -22,6 +22,10 @@ namespace weatherd.aprs.weather
         /// The equipment type to report.
         /// </summary>
         public string EquipmentType { get; set; }
+        /// <summary>
+        /// The station comment.
+        /// </summary>
+        public string Comment { get; set; }
 
         /// <summary>
         /// The APRS symbol for this station.
@@ -168,6 +172,9 @@ namespace weatherd.aprs.weather
 
             if (!string.IsNullOrEmpty(EquipmentType))
                 packetBuilder.Append($"e{EquipmentType}");
+
+            if (!string.IsNullOrEmpty(Comment))
+                packetBuilder.Append(Comment);
 
             return packetBuilder.ToString();
         }

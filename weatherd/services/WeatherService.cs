@@ -27,6 +27,8 @@ namespace weatherd.services
         private AutoResetEvent _endSignaller;
         private bool _enableCorrectness;
         private float _elevation;
+        private float _anemometerOrientation;
+        private DateTime _lastCwopSendTime = DateTime.MinValue;
 
         /// <inheritdoc />
         public bool IsRunning => _wxDataSources.All(x => x.Running);
@@ -55,6 +57,7 @@ namespace weatherd.services
 
             _enableCorrectness = wxConfig.GetValue("EnableCorrectness", true);
             _elevation = siteConfig.GetValue("Elevation", 0);
+            _anemometerOrientation = wxConfig.GetValue("AnemometerOrientation", 0);
         }
 
         /// <inheritdoc />
@@ -118,16 +121,25 @@ namespace weatherd.services
                 Log.Debug("Sample retrieved from weather data source did not update at polling interval");
                 return;
             }
+            
+            // Update the anemometer orientation
+            wxState.WindDirection += Angle.FromDegrees(_anemometerOrientation);
 
             if (_enableCorrectness)
                 EnforceCorrectness(ref wxState);
 
-            try
+            if (DateTime.UtcNow - _lastCwopSendTime > TimeSpan.FromMinutes(2))
             {
-                await _cwopService.SendCWOP(wxState);
-            } catch
-            {
-                // ignore;  CWOP is an auxiliary data stream.
+                try
+                {
+                    _lastCwopSendTime = DateTime.UtcNow;    
+                    await _cwopService.SendCWOP(wxState);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Failed to send CWOP data stream");
+                    // ignore;  CWOP is an auxiliary data stream.
+                }
             }
 
             try

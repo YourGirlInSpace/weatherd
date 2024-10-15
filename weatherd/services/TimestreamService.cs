@@ -28,7 +28,7 @@ namespace weatherd.services
 
         private string _databaseName;
         private string _tableName;
-        private RecordDefinition[] _recordDefinitions;
+        private TimestreamRecordDefinition[] _recordDefinitions;
         private Dimension[] _dimensions;
 
         public TimestreamService(IConfiguration config, ITimestreamClient client)
@@ -52,14 +52,14 @@ namespace weatherd.services
             _enableDataWrite = tsConfig.GetValue("EnableDataWrite", true);
             _databaseName = tsConfig.GetValue("Database", "weather");
             _tableName = tsConfig.GetValue("Table", "local");
-            _recordDefinitions = tsConfig.GetValue("Records", Array.Empty<RecordDefinition>());
+            _recordDefinitions = tsConfig.GetValue("Records", Array.Empty<TimestreamRecordDefinition>());
 
             // We cannot actually sync data without record definitions, so ...
             if (_enableDataWrite && _recordDefinitions.Length == 0)
                 throw new InvalidOperationException(
                     "Cannot sync to Timestream without record definitions in configuration.");
 
-            _recordDefinitions = Utilities.GetConfigurationArray<RecordDefinition>(tsConfig.GetSection("Records")).ToArray();
+            _recordDefinitions = Utilities.GetConfigurationArray<TimestreamRecordDefinition>(tsConfig.GetSection("Records")).ToArray();
             _dimensions = Utilities.GetConfigurationArray<Dimension>(tsConfig.GetSection("Dimensions"), new Dictionary<string, Func<string, object>>
             {
                 { nameof(Dimension.DimensionValueType), x => DimensionValueType.FindValue(x.ToUpperInvariant()) }
@@ -114,7 +114,7 @@ namespace weatherd.services
                 return;
 
             List<Record> records = new();
-            foreach (RecordDefinition defn in _recordDefinitions)
+            foreach (TimestreamRecordDefinition defn in _recordDefinitions)
             {
                 try
                 {
