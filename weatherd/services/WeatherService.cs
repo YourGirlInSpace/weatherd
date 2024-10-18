@@ -124,6 +124,7 @@ namespace weatherd.services
             
             // Update the anemometer orientation
             wxState.WindDirection += Angle.FromDegrees(_anemometerOrientation);
+            wxState.WindDirection.Normalize();
 
             if (_enableCorrectness)
                 EnforceCorrectness(ref wxState);

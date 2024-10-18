@@ -480,7 +480,10 @@ namespace weatherd
 
             if (WindSpeed != default && WindDirection != default)
             {
-                metarBuilder.Append(WindDirection.Degrees.ToString("000"));
+                // We need to round the direction to the nearest 10
+                var windDir = Round(WindDirection.Degrees / 10.0) % 36.0 * 10.0;
+                
+                metarBuilder.Append(windDir.ToString("000"));
                 metarBuilder.Append(WindSpeed.Knots.ToString("#00"));
 
                 if (WindGust5Minute != default && WindGust5Minute.Knots - 3 > WindSpeed.Knots)
@@ -522,6 +525,12 @@ namespace weatherd
             }
 
             string metarCode = Weather?.ToString();
+            
+            // Note: Internally, Weather can be "CLR". For a functional METAR,
+            //       this verbage is reserved for cloud layers.  So, if the code
+            //       reads "CLR", we will overwrite to empty.
+            if (metarCode == "CLR")
+                metarCode = String.Empty;
 
             if (!string.IsNullOrEmpty(metarCode))
             {
